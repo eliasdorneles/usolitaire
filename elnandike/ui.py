@@ -12,15 +12,14 @@ class CardWidget(urwid.WidgetWrap):
     def __init__(self, card, turned=False):
         self.card = card
         self._turned = turned
-        self.text = urwid.Text(self._draw_card_text())
+        self.text = urwid.Text(self._draw_card_text(), wrap='clip')
         super(CardWidget, self).__init__(self.text)
 
     def selectable(self):
         return True
 
-    def keypress(self, *a, **kw):
-        # TODO: figure how to delegate event without calling keypress for Text()
-        super(CardWidget, self).keypress(*a, **kw)
+    def keypress(self, size, key):
+        return key
 
     def mouse_event(self, size, event, button, col, row, focus):
         if event == 'mouse press':
@@ -28,11 +27,8 @@ class CardWidget(urwid.WidgetWrap):
 
     def _draw_card_text(self):
         color = 'red' if self.card.suit in ('hearts', 'diamonds') else ''
-        top = u'╭──────╮\n'
-        bottom = u'╰──────╯\n'
-        turned_pattern = u'│╬╬╬╬╬╬│\n'
         if self.turned:
-            filling = [turned_pattern] * 4
+            filling = [u'│╬╬╬╬╬╬│\n'] * 4
         else:
             rank, suit = (self.card.rank, self.card.suit_symbol)
             filling = (
@@ -40,8 +36,7 @@ class CardWidget(urwid.WidgetWrap):
                 [u'│      │\n'] * 2 +
                 [u'│', (color, '{}   {}'.format(suit, rank.rjust(2))), '│\n']
             )
-        text = [top] + filling + [bottom]
-        return text
+        return [u'╭──────╮\n'] + filling + [u'╰──────╯\n']
 
     @property
     def turned(self):
