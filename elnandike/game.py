@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import random
 from collections import namedtuple
 
 
@@ -31,3 +32,9 @@ class Deck(object):
 
     def __getitem__(self, position):
         return self._cards[position]
+
+    def __iter__(self):
+        return iter(self._cards)
+
+    def shuffle(self):
+        random.shuffle(self._cards)
