@@ -3,8 +3,15 @@ Things to figure out:
 [X] How to represent the cards with Unicode
 [X] How to draw a rectangle with text inside
 [X] How to draw a card widget (rectangle with text inside, accept mouse events, can be "turned", colors)
-[O] How to draw card widgets on top of each other (to make a pile)
-[ ] Layout the game (create deck, tableau, foundations, piles)
+[X] How to draw card widgets on top of each other (to make a pile)
+[ ] Implement game model logic
+    [ ] Move card from stock to waste
+    [ ] Move card from one pile to another
+    [ ] Move card to foundation
+    [ ] Disallow invalid movements (card stays where it is)
+    [ ] Detect if game is won
+[ ] Lay out the widgets according to game model
+[ ] Connect UI events to game model, refresh screen
 
 
  
