@@ -49,6 +49,7 @@ class CardWidget(urwid.WidgetWrap):
         text = [top] + filling
         if not self.on_pile or self.top_of_pile:
             text += [u'╰──────╯\n']
+        text[-1] = text[-1].strip()
         return text
 
     @property
