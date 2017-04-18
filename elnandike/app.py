@@ -15,7 +15,19 @@ def exit_on_q(key):
 def main(args):
     deck = Deck()
     deck.shuffle()
-    cards = [CardWidget(d) for d in deck[:7]]
+    statusbar = urwid.Text(u'Ready')
+
+    def onclick(card_widget):
+        card_widget.highlighted = not card_widget.highlighted
+        text = 'Clicked: {}\nCard: {}\nHighlighted: {}'.format(
+            card_widget,
+            card_widget.card,
+            card_widget.highlighted,
+        )
+        statusbar.set_text(text)
+        card_widget.redraw()
+
+    cards = [CardWidget(d, onclick=onclick) for d in deck[:7]]
     cards[0].face_up = False
     cards[3].face_up = False
     for c in cards[:4]:
@@ -24,7 +36,9 @@ def main(args):
     main_layout = urwid.Pile([
         urwid.Columns(cards),
         urwid.Divider(),
-        urwid.Columns([CardPileWidget(deck[:i]) for i in range(1, 8)]),
+        urwid.Columns([CardPileWidget(deck[:i], onclick=onclick) for i in range(1, 8)]),
+        urwid.Divider(),
+        statusbar,
     ])
 
     if args.shell:
