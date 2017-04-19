@@ -10,13 +10,32 @@ PALETTE = [
 ]
 
 
+class SpacerWidget(urwid.WidgetWrap):
+    def __init__(self, **kw):
+        self.text = urwid.Text([u'        \n'] * 6, wrap='clip')
+        super(SpacerWidget, self).__init__(self.text)
+
+
+class EmptyCardWidget(urwid.WidgetWrap):
+    def __init__(self, **kw):
+        self.text = urwid.Text(
+            [
+                u'╭──────╮\n',
+                u'│      │\n',
+                u'│      │\n',
+                u'│      │\n',
+                u'│      │\n',
+                u'╰──────╯\n',
+            ], wrap='clip')
+        super(EmptyCardWidget, self).__init__(self.text)
+
+
 class CardWidget(urwid.WidgetWrap):
     highlighted = False
 
-    def __init__(self, card, face_up=True, playable=False, on_pile=False,
+    def __init__(self, card, playable=False, on_pile=False,
                  bottom_of_pile=False, top_of_pile=False, onclick=None):
         self.card = card
-        self._face_up = face_up
         self.playable = playable
         self.on_pile = on_pile
         self.bottom_of_pile = bottom_of_pile
@@ -69,16 +88,15 @@ class CardWidget(urwid.WidgetWrap):
 
     @property
     def face_up(self):
-        return self._face_up
+        return self.card.face_up
 
     @face_up.setter
     def face_up(self, val):
-        self._face_up = bool(val)
+        self.card.face_up = bool(val)
         self.redraw()
 
     def redraw(self):
         self.text.set_text(self._draw_card_text())
-
 
 
 class CardPileWidget(urwid.WidgetWrap):
@@ -87,8 +105,6 @@ class CardPileWidget(urwid.WidgetWrap):
         bottom_cards, card_on_top = cards[:-1], cards[-1]
         self._card_widgets = [
             CardWidget(c,
-                       face_up=False,
-                       playable=True,
                        onclick=onclick,
                        on_pile=True,
                        bottom_of_pile=(i == 0))
@@ -97,8 +113,7 @@ class CardPileWidget(urwid.WidgetWrap):
             CardWidget(card_on_top,
                        onclick=onclick,
                        on_pile=len(cards) > 1,
-                       top_of_pile=True,
-                       playable=True))
+                       top_of_pile=True))
         self.pile = urwid.Pile(self._card_widgets)
         super(CardPileWidget, self).__init__(self.pile)
 

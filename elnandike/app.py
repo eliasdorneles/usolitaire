@@ -3,8 +3,8 @@
 
 from __future__ import print_function, absolute_import, division
 import urwid
-from .game import Deck
-from .ui import CardWidget, CardPileWidget, PALETTE
+from .game import Game
+from .ui import CardWidget, CardPileWidget, SpacerWidget, EmptyCardWidget, PALETTE
 
 
 def exit_on_q(key):
@@ -13,8 +13,7 @@ def exit_on_q(key):
 
 
 def main(args):
-    deck = Deck()
-    deck.shuffle()
+    game = Game()
     statusbar = urwid.Text(u'Ready')
 
     def onclick(card_widget):
@@ -31,16 +30,21 @@ def main(args):
         statusbar.set_text(text)
         card_widget.redraw()
 
-    cards = [CardWidget(d, onclick=onclick) for d in deck[:7]]
-    cards[0].face_up = False
-    cards[3].face_up = False
-    for c in cards[:4]:
-        c.playable = True
-
     main_layout = urwid.Pile([
-        urwid.Columns(cards),
+        urwid.Columns([
+            CardWidget(game.stock[-1]),
+            EmptyCardWidget(),
+            SpacerWidget(),
+            EmptyCardWidget(),
+            EmptyCardWidget(),
+            EmptyCardWidget(),
+            EmptyCardWidget(),
+        ]),
         urwid.Divider(),
-        urwid.Columns([CardPileWidget(deck[:i], onclick=onclick) for i in range(1, 8)]),
+        urwid.Columns([
+            CardPileWidget(pile, onclick=onclick)
+            for pile in game.tableau
+        ]),
         urwid.Divider(),
         statusbar,
     ])
