@@ -18,7 +18,11 @@ def main(args):
     statusbar = urwid.Text(u'Ready')
 
     def onclick(card_widget):
+        # XXX: code below is meant just for testing the UI,
+        # it's not related to actual game logic
+        card_widget.face_up = not card_widget.face_up
         card_widget.highlighted = not card_widget.highlighted
+
         text = 'Clicked: {}\nCard: {}\nHighlighted: {}'.format(
             card_widget,
             card_widget.card,
