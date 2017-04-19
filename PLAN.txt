@@ -4,14 +4,15 @@ Things to figure out:
 [X] How to draw a rectangle with text inside
 [X] How to draw a card widget (rectangle with text inside, accept mouse events, can be "turned", colors)
 [X] How to draw card widgets on top of each other (to make a pile)
-[ ] Implement game model logic
-    [ ] Move card from stock to waste
-    [ ] Move card from one pile to another
-    [ ] Move card to foundation
-    [ ] Disallow invalid movements (card stays where it is)
-    [ ] Detect if game is won
+[X] Implement game model logic
+    [X] Move card from stock to waste
+    [X] Move card from one pile to another
+    [X] Move card from waste to a pile in the tableau
+    [X] Move card to foundation
 [ ] Lay out the widgets according to game model
 [ ] Connect UI events to game model, refresh screen
+    [ ] Disallow invalid movements (card stays where it is)
+    [ ] Detect if game is won
 
 
  
