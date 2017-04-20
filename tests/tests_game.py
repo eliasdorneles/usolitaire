@@ -1,5 +1,5 @@
 import unittest
-from elnandike import game
+from usolitaire import game
 
 
 class GameTest(unittest.TestCase):
