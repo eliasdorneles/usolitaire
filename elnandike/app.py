@@ -83,7 +83,7 @@ class GameApp(object):
             self.update_status('Well done!')
 
     def pile_card_clicked(self, card_widget, pile=None):
-        if not pile.top.face_up:
+        if hasattr(pile.top, 'face_up') and not pile.top.face_up:
             pile.top.face_up = True
             self.update_status('Neat!')
         else:

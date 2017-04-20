@@ -89,6 +89,9 @@ class Game(object):
         self.waste.clear()
 
     def _is_valid_move_to_tableau(self, source_card, target_card):
+        if target_card is None:
+            if source_card.rank == 'K':
+                return True
         if not source_card.face_up or not target_card.face_up:
             return False
         diff = rank_diff(source_card.rank, target_card.rank)
@@ -107,7 +110,7 @@ class Game(object):
         if src_index == target_index:
             raise InvalidMove('Source is same as destination')
         source_pile, target_pile = self.tableau[src_index], self.tableau[target_index]
-        target_card = target_pile[-1]
+        target_card = target_pile[-1] if target_pile else None
         for index, card in list(enumerate(source_pile))[::-1]:
             if self._is_valid_move_to_tableau(card, target_card):
                 to_move = source_pile[index:]
@@ -137,6 +140,8 @@ class Game(object):
     def move_to_foundation_from_tableau(self, index):
         assert index in range(7)
         pile = self.tableau[index]
+        if not pile:
+            raise InvalidMove()
         card_to_move = pile[-1]
         if not card_to_move.face_up:
             raise InvalidMove()

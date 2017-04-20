@@ -39,6 +39,9 @@ class EmptyCardWidget(urwid.WidgetWrap):
             if self.onclick:
                 self.onclick(self)
 
+    def redraw(self):
+        """no-op"""
+
 
 class CardWidget(urwid.WidgetWrap):
     highlighted = False
@@ -143,7 +146,7 @@ class CardPileWidget(urwid.WidgetWrap):
                            on_pile=len(self.cards) > 1,
                            top_of_pile=True))
         else:
-            card_widgets = [EmptyCardWidget()]
+            card_widgets = [EmptyCardWidget(onclick=partial(self.onclick, pile=self))]
         self.pile.contents.clear()
         self.pile.contents.extend([(w, self.pile.options()) for w in card_widgets])
 
