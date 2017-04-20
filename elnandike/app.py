@@ -82,9 +82,12 @@ class GameApp(object):
                 yield w
 
         for w, _ in self._top_columns.contents:
-            iter_widgets = getattr(w, 'iter_widgets', lambda: [])
-            for w in iter_widgets():
+            if isinstance(w, CardWidget):
                 yield w
+            else:
+                iter_widgets = getattr(w, 'iter_widgets', lambda: [])
+                for w in iter_widgets():
+                    yield w
 
     def clear_selection(self):
         self.current_selection = Selection(None, None)
@@ -108,7 +111,6 @@ class GameApp(object):
 
         for card in self.iter_allcards():
             card.redraw()
-        self.update_status('should_highlight: %s' % should_highlight)
 
     def pile_card_clicked(self, card_widget, pile=None):
         if pile and hasattr(pile.top, 'face_up') and not pile.top.face_up:
