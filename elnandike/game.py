@@ -105,7 +105,7 @@ class Game(object):
         """Move pile, assuming that cards facing up are in the proper order"""
         assert src_index in range(7) and target_index in range(7)
         if src_index == target_index:
-            raise InvalidMove()
+            raise InvalidMove('Source is same as destination')
         source_pile, target_pile = self.tableau[src_index], self.tableau[target_index]
         target_card = target_pile[-1]
         for index, card in list(enumerate(source_pile))[::-1]:

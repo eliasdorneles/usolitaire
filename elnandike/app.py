@@ -13,9 +13,9 @@ class GameApp(object):
     def __init__(self):
         self.game = Game()
         self._statusbar = urwid.Text(u'Ready')
+        self.prev_pile_index = None
         self._tableau_columns = urwid.Columns([
-            CardPileWidget(pile, onclick=self.pile_card_clicked, index=i)
-            for i, pile in enumerate(self.game.tableau)
+            EmptyCardWidget() for _ in range(7)
         ])
         self._top_columns = urwid.Columns([
             EmptyCardWidget(),
@@ -26,7 +26,9 @@ class GameApp(object):
             EmptyCardWidget(),
             EmptyCardWidget(),
         ])
+        self._update_stock_and_waste()
         self._update_foundations()
+        self._update_tableaus()
 
         self.main_layout = urwid.Pile([
             self._top_columns,
@@ -35,7 +37,12 @@ class GameApp(object):
             urwid.Divider(),
             self._statusbar,
         ])
-        self._update_stock_and_waste()
+
+    def _update_tableaus(self):
+        for i, pile in enumerate(self.game.tableau):
+            self._tableau_columns.contents[i] = (
+                CardPileWidget(pile, onclick=self.pile_card_clicked, index=i),
+                self._tableau_columns.options())
 
     def _update_stock_and_waste(self):
         if self.game.stock:
@@ -83,13 +90,25 @@ class GameApp(object):
             try:
                 self.game.move_to_foundation_from_tableau(pile.index)
             except InvalidMove:
-                self.update_status('Not implemented yet')
+                card_widget.highlighted = True
+                card_widget.redraw()
+                if self.prev_pile_index is not None:
+                    try:
+                        self.game.move_tableau_pile(self.prev_pile_index, pile.index)
+                    except InvalidMove:
+                        self.update_status('Invalid move: %r %r' %
+                                           (self.prev_pile_index, pile.index))
+                    else:
+                        self._update_tableaus()
+                self.prev_pile_index = pile.index
             else:
                 pile.redraw()
                 self._update_foundations()
                 self.update_status('Great job!!')
 
-    def update_status(self, text):
+    def update_status(self, text, append=False):
+        if append:
+            text = self._statusbar.get_text()[0] + '\n' + text
         self._statusbar.set_text(text)
 
 

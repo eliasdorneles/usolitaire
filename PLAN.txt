@@ -9,10 +9,15 @@ Things to figure out:
     [X] Move card from one pile to another
     [X] Move card from waste to a pile in the tableau
     [X] Move card to foundation
-[ ] Lay out the widgets according to game model
-[ ] Connect UI events to game model, refresh screen
-    [ ] Disallow invalid movements (card stays where it is)
+[X] Lay out the widgets according to game model
+[o] Connect UI events to game model, refresh screen
+    [X] Deal from stock
+    [X] Move card from one pile to another
+    [X] Move card to foundation
+    [ ] Move card from waste to a pile in the tableau
+    [ ] Make sure there is only one card selected at one time
     [ ] Detect if game is won
+    [ ] Disallow invalid movements (card stays where it is)
 
 
  
