@@ -144,6 +144,7 @@ class CardPileWidget(urwid.WidgetWrap):
             card_widgets = [
                 CardWidget(c,
                            onclick=partial(self.onclick, pile=self),
+                           playable=c.face_up,
                            on_pile=True,
                            bottom_of_pile=(i == 0))
                 for i, c in enumerate(bottom_cards)]

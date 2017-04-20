@@ -16,8 +16,8 @@ Things to figure out:
     [X] Move card to foundation
     [X] Move card from waste to a pile in the tableau
     [X] Make sure there is only one card selected at one time
+    [X] Make all cards facing up in the tableau playable
     [ ] Detect double-clicking
-    [ ] Make all cards facing up in the tableau playable
     [ ] Detect if game is won
     [ ] Disallow invalid movements (card stays where it is)
 

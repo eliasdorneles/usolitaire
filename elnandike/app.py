@@ -94,7 +94,6 @@ class GameApp(object):
         for card in self.iter_allcards():
             card.highlighted = False
             card.redraw()
-        self.update_status('Cleared selection', append=True)
 
     def select_card(self, card_widget, pile=None):
         should_highlight = not card_widget.highlighted
@@ -162,8 +161,6 @@ class GameApp(object):
     def update_status(self, text='', append=False):
         if append:
             text = self._statusbar.get_text()[0] + '\n' + text
-        if self.current_selection:
-            text += '\nCurrent selection: %r' % (self.current_selection,)
         self._statusbar.set_text(text)
 
 
