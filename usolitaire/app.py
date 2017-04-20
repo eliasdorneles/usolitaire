@@ -175,7 +175,11 @@ def exit_on_q(key):
         raise urwid.ExitMainLoop()
 
 
-def main(args):
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.parse_args()
+
     app = GameApp()
     loop = urwid.MainLoop(
         urwid.Filler(app.main_layout, valign='top'),
@@ -186,8 +190,4 @@ def main(args):
 
 
 if '__main__' == __name__:
-    import argparse
-    parser = argparse.ArgumentParser(description=__doc__)
-
-    args = parser.parse_args()
-    main(args)
+    main()
