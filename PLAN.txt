@@ -17,26 +17,11 @@ Things to figure out:
     [X] Move card from waste to a pile in the tableau
     [X] Make sure there is only one card selected at one time
     [X] Make all cards facing up in the tableau playable
-    [ ] Detect double-clicking
-    [ ] Detect if game is won
-    [ ] Disallow invalid movements (card stays where it is)
+    [X] Disallow invalid movements (card stays where it is)
+    [ ] Only send to foundation if it's double-click (needs double-click detection)
+    [ ] Detect if game is won, and display a neat message
 
 
-When a card facing down is clicked, make it face up and clear selection
-When a card facing up is clicked:
-* if it's a waste card:
-  * move to foundation (ideally this should be only if it's a double click,
-    to prevent the case of moving it when user doesn't want to) and clear selection
-  * if that fails, make it the current selection (or deselect it if it's the current card)
-* if it's a tableau card:
-  * move to foundation (ideally this should be only if it's a double click,
-    to prevent the case of moving it when user doesn't want to) and clear selection
-  * if that fails, and there is a selection:
-    * if selection is the same card, deselect it
-    * try to move selected card/pile to the current tableau and clear selection
-  * otherwise, having no selection, make it the current selection
-
- 
  ╭──────╮  ╭──────╮            ╭──────╮  ╭──────╮  ╭──────╮  ╭──────╮
  │╬╬╬╬╬╬│  │A ♥   │            │A ♥   │  │A ♥   │  │10♠   │  │K ♧   │
  │╬╬╬╬╬╬│  │      │            │      │  │      │  │      │  │      │

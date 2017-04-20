@@ -77,6 +77,7 @@ class GameApp(object):
         self.clear_selection()
 
     def iter_allcards(self):
+        """Iterate through all card widgets in the game"""
         for pile, _ in self._tableau_columns.contents:
             for w in pile.iter_widgets():
                 yield w
@@ -96,6 +97,7 @@ class GameApp(object):
             card.redraw()
 
     def select_card(self, card_widget, pile=None):
+        """Select card, or deselect if it was previously selected"""
         should_highlight = not card_widget.highlighted
 
         for card in self.iter_allcards():
@@ -111,6 +113,45 @@ class GameApp(object):
         for card in self.iter_allcards():
             card.redraw()
 
+    def _card_from_waste_clicked(self, card_widget):
+        if self.game.waste and card_widget.card == self.game.waste[-1]:
+            try:
+                self.game.move_to_foundation_from_waste()
+            except InvalidMove:
+                self.select_card(card_widget, None)
+            else:
+                self._update_stock_and_waste()
+                self._update_foundations()
+        else:
+            self.update_status('Invalid move')
+
+    def _card_from_tableau_clicked(self, card_widget, pile):
+        try:
+            # TODO: do this only if it's double-click
+            self.game.move_to_foundation_from_tableau(pile.index)
+        except InvalidMove:
+            if not self.current_selection.card or self.current_selection.card == card_widget:
+                self.select_card(card_widget, pile)
+                return
+
+            src_index = self.current_selection.tableau_index
+            try:
+                if src_index is None:
+                    self.game.move_from_waste_to_tableau(pile.index)
+                else:
+                    self.game.move_tableau_pile(src_index, pile.index)
+            except InvalidMove:
+                self.update_status('Invalid move: %r %r' % (src_index, pile.index))
+            else:
+                self._update_stock_and_waste()
+                self._update_tableaus()
+                self.clear_selection()
+        else:
+            pile.redraw()
+            self._update_foundations()
+            self.clear_selection()
+            self.update_status('Great job!!')
+
     def pile_card_clicked(self, card_widget, pile=None):
         if pile and hasattr(pile.top, 'face_up') and not pile.top.face_up:
             pile.top.face_up = True
@@ -119,44 +160,9 @@ class GameApp(object):
             return
 
         if pile is None:
-            # assume clicked card it's from waste
-            if self.game.waste and card_widget.card == self.game.waste[-1]:
-                try:
-                    self.game.move_to_foundation_from_waste()
-                except InvalidMove:
-                    # TODO: why isn't selectin from waste highlighting?
-                    self.select_card(card_widget, pile)
-                else:
-                    self._update_stock_and_waste()
-                    self._update_foundations()
-            else:
-                self.update_status('Invalid move')
+            self._card_from_waste_clicked(card_widget)
         else:
-            # assume clicked card it's from a tableau
-            try:
-                self.game.move_to_foundation_from_tableau(pile.index)
-            except InvalidMove:
-                if not self.current_selection.card or self.current_selection.card == card_widget:
-                    self.select_card(card_widget, pile)
-                    return
-
-                src_index = self.current_selection.tableau_index
-                try:
-                    if src_index is None:
-                        self.game.move_from_waste_to_tableau(pile.index)
-                    else:
-                        self.game.move_tableau_pile(src_index, pile.index)
-                except InvalidMove:
-                    self.update_status('Invalid move: %r %r' % (src_index, pile.index))
-                else:
-                    self._update_stock_and_waste()
-                    self._update_tableaus()
-                    self.clear_selection()
-            else:
-                pile.redraw()
-                self._update_foundations()
-                self.clear_selection()
-                self.update_status('Great job!!')
+            self._card_from_tableau_clicked(card_widget, pile)
 
     def update_status(self, text='', append=False):
         if append:
