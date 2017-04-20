@@ -90,8 +90,7 @@ class Game(object):
 
     def _is_valid_move_to_tableau(self, source_card, target_card):
         if target_card is None:
-            if source_card.rank == 'K':
-                return True
+            return source_card.rank == 'K'
         if not source_card.face_up or not target_card.face_up:
             return False
         diff = rank_diff(source_card.rank, target_card.rank)
@@ -100,13 +99,16 @@ class Game(object):
     def move_from_waste_to_tableau(self, target_index):
         assert target_index in range(7)
         target_pile = self.tableau[target_index]
-        if self.waste and self._is_valid_move_to_tableau(self.waste[-1], target_pile[-1]):
+        target_card = target_pile[-1] if target_pile else None
+        if self.waste and self._is_valid_move_to_tableau(self.waste[-1], target_card):
             target_pile.append(self.waste.pop())
-        raise InvalidMove()
+        else:
+            raise InvalidMove()
 
     def move_tableau_pile(self, src_index, target_index):
         """Move pile, assuming that cards facing up are in the proper order"""
-        assert src_index in range(7) and target_index in range(7)
+        assert src_index in range(7), "Invalid index: %r" % src_index
+        assert target_index in range(7), "Invalid index: %r" % target_index
         if src_index == target_index:
             raise InvalidMove('Source is same as destination')
         source_pile, target_pile = self.tableau[src_index], self.tableau[target_index]
@@ -138,7 +140,7 @@ class Game(object):
         foundation_pile.append(self.waste.pop())
 
     def move_to_foundation_from_tableau(self, index):
-        assert index in range(7)
+        assert index in range(7), "Invalid index: %r" % index
         pile = self.tableau[index]
         if not pile:
             raise InvalidMove()

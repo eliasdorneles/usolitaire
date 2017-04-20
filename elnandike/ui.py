@@ -42,6 +42,9 @@ class EmptyCardWidget(urwid.WidgetWrap):
     def redraw(self):
         """no-op"""
 
+    def iter_widgets(self):
+        return iter([])
+
 
 class CardWidget(urwid.WidgetWrap):
     highlighted = False
@@ -57,6 +60,11 @@ class CardWidget(urwid.WidgetWrap):
         self.highlighted = False
         self.onclick = onclick
         super(CardWidget, self).__init__(self.text)
+
+    def __repr__(self):
+        return '{}(card={!r}, playable={!r}, highlighted={!r}, ...)'.format(
+            self.__class__.__name__, self.card, self.playable, self.highlighted,
+        )
 
     def selectable(self):
         return True
@@ -149,6 +157,10 @@ class CardPileWidget(urwid.WidgetWrap):
             card_widgets = [EmptyCardWidget(onclick=partial(self.onclick, pile=self))]
         self.pile.contents.clear()
         self.pile.contents.extend([(w, self.pile.options()) for w in card_widgets])
+
+    def iter_widgets(self):
+        for w, _ in self.pile.contents:
+            yield w
 
     def redraw(self):
         self._update_pile()

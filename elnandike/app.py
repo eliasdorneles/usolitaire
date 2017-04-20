@@ -4,19 +4,21 @@
 """
 
 from __future__ import print_function, absolute_import, division
+from collections import namedtuple
 import urwid
 from .game import Game, InvalidMove
 from .ui import CardWidget, CardPileWidget, SpacerWidget, EmptyCardWidget, PALETTE
+
+
+Selection = namedtuple('Selection', 'card tableau_index')
 
 
 class GameApp(object):
     def __init__(self):
         self.game = Game()
         self._statusbar = urwid.Text(u'Ready')
-        self.prev_pile_index = None
-        self._tableau_columns = urwid.Columns([
-            EmptyCardWidget() for _ in range(7)
-        ])
+        self.current_selection = Selection(None, None)
+        self._tableau_columns = urwid.Columns([EmptyCardWidget() for _ in range(7)])
         self._top_columns = urwid.Columns([
             EmptyCardWidget(),
             EmptyCardWidget(),
@@ -52,7 +54,7 @@ class GameApp(object):
         self._top_columns.contents[0] = (stock_widget, self._top_columns.options())
 
         if self.game.waste:
-            waste_widget = CardWidget(self.game.waste[-1], onclick=self.waste_clicked, playable=True)
+            waste_widget = CardWidget(self.game.waste[-1], onclick=self.pile_card_clicked, playable=True)
         else:
             waste_widget = EmptyCardWidget()
         self._top_columns.contents[1] = (waste_widget, self._top_columns.options())
@@ -66,49 +68,100 @@ class GameApp(object):
         self.game.deal_from_stock()
         self._update_stock_and_waste()
         self.update_status('Dealt from stock')
+        self.clear_selection()
 
     def redeal_stock(self, stock_widget):
         self.game.restore_stock()
         self._update_stock_and_waste()
         self.update_status('Restored stock')
+        self.clear_selection()
 
-    def waste_clicked(self, waste_widget):
-        try:
-            self.game.move_to_foundation_from_waste()
-        except InvalidMove:
-            self.update_status('Invalid move')
+    def iter_allcards(self):
+        for pile, _ in self._tableau_columns.contents:
+            for w in pile.iter_widgets():
+                yield w
+
+        for w, _ in self._top_columns.contents:
+            iter_widgets = getattr(w, 'iter_widgets', lambda: [])
+            for w in iter_widgets():
+                yield w
+
+    def clear_selection(self):
+        self.current_selection = Selection(None, None)
+        for card in self.iter_allcards():
+            card.highlighted = False
+            card.redraw()
+        self.update_status('Cleared selection', append=True)
+
+    def select_card(self, card_widget, pile=None):
+        should_highlight = not card_widget.highlighted
+
+        for card in self.iter_allcards():
+            card.highlighted = False
+
+        card_widget.highlighted = should_highlight
+
+        if should_highlight:
+            self.current_selection = Selection(card_widget, getattr(pile, 'index', None))
         else:
-            self._update_foundations()
-            self._update_stock_and_waste()
-            self.update_status('Well done!')
+            self.current_selection = Selection(None, None)
+
+        for card in self.iter_allcards():
+            card.redraw()
+        self.update_status('should_highlight: %s' % should_highlight)
 
     def pile_card_clicked(self, card_widget, pile=None):
-        if hasattr(pile.top, 'face_up') and not pile.top.face_up:
+        if pile and hasattr(pile.top, 'face_up') and not pile.top.face_up:
             pile.top.face_up = True
+            self.clear_selection()
             self.update_status('Neat!')
+            return
+
+        if pile is None:
+            # assume clicked card it's from waste
+            if self.game.waste and card_widget.card == self.game.waste[-1]:
+                try:
+                    self.game.move_to_foundation_from_waste()
+                except InvalidMove:
+                    # TODO: why isn't selectin from waste highlighting?
+                    self.select_card(card_widget, pile)
+                else:
+                    self._update_stock_and_waste()
+                    self._update_foundations()
+            else:
+                self.update_status('Invalid move')
         else:
+            # assume clicked card it's from a tableau
             try:
                 self.game.move_to_foundation_from_tableau(pile.index)
             except InvalidMove:
-                card_widget.highlighted = True
-                card_widget.redraw()
-                if self.prev_pile_index is not None:
-                    try:
-                        self.game.move_tableau_pile(self.prev_pile_index, pile.index)
-                    except InvalidMove:
-                        self.update_status('Invalid move: %r %r' %
-                                           (self.prev_pile_index, pile.index))
+                if not self.current_selection.card or self.current_selection.card == card_widget:
+                    self.select_card(card_widget, pile)
+                    return
+
+                src_index = self.current_selection.tableau_index
+                try:
+                    if src_index is None:
+                        self.game.move_from_waste_to_tableau(pile.index)
                     else:
-                        self._update_tableaus()
-                self.prev_pile_index = pile.index
+                        self.game.move_tableau_pile(src_index, pile.index)
+                except InvalidMove:
+                    self.update_status('Invalid move: %r %r' % (src_index, pile.index))
+                else:
+                    self._update_stock_and_waste()
+                    self._update_tableaus()
+                    self.clear_selection()
             else:
                 pile.redraw()
                 self._update_foundations()
+                self.clear_selection()
                 self.update_status('Great job!!')
 
-    def update_status(self, text, append=False):
+    def update_status(self, text='', append=False):
         if append:
             text = self._statusbar.get_text()[0] + '\n' + text
+        if self.current_selection:
+            text += '\nCurrent selection: %r' % (self.current_selection,)
         self._statusbar.set_text(text)
 
 
