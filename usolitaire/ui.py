@@ -6,8 +6,8 @@ from functools import partial
 
 PALETTE = [
     ('red', 'dark red', ''),
-    ('selectedred', 'dark red', 'dark green'),
-    ('selected', '', 'dark green'),
+    ('selectedred', 'dark red', 'yellow'),
+    ('selected', '', 'yellow'),
 ]
 
 
