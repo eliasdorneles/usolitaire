@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import urwid
+from functools import partial
 
 
 PALETTE = [
@@ -35,7 +36,7 @@ class CardWidget(urwid.WidgetWrap):
 
     def __init__(self, card, playable=False, on_pile=False,
                  bottom_of_pile=False, top_of_pile=False, onclick=None):
-        self.card = card
+        self._card = card
         self.playable = playable
         self.on_pile = on_pile
         self.bottom_of_pile = bottom_of_pile
@@ -87,6 +88,15 @@ class CardWidget(urwid.WidgetWrap):
         return text
 
     @property
+    def card(self):
+        return self._card
+
+    @card.setter
+    def card(self, card):
+        self._card = card
+        self.redraw()
+
+    @property
     def face_up(self):
         return self.card.face_up
 
@@ -101,21 +111,34 @@ class CardWidget(urwid.WidgetWrap):
 
 class CardPileWidget(urwid.WidgetWrap):
     def __init__(self, cards, onclick=None):
+        self.cards = cards
         self.onclick = onclick
-        bottom_cards, card_on_top = cards[:-1], cards[-1]
-        self._card_widgets = [
-            CardWidget(c,
-                       onclick=onclick,
-                       on_pile=True,
-                       bottom_of_pile=(i == 0))
-            for i, c in enumerate(bottom_cards)]
-        self._card_widgets.append(
-            CardWidget(card_on_top,
-                       onclick=onclick,
-                       on_pile=len(cards) > 1,
-                       top_of_pile=True))
-        self.pile = urwid.Pile(self._card_widgets)
+        self.pile = urwid.Pile([])
+        self._update_pile()
         super(CardPileWidget, self).__init__(self.pile)
+
+    def _update_pile(self):
+        if self.cards:
+            bottom_cards, card_on_top = self.cards[:-1], self.cards[-1]
+            card_widgets = [
+                CardWidget(c,
+                           onclick=partial(self.onclick, pile=self),
+                           on_pile=True,
+                           bottom_of_pile=(i == 0))
+                for i, c in enumerate(bottom_cards)]
+            card_widgets.append(
+                CardWidget(card_on_top,
+                           playable=True,
+                           onclick=partial(self.onclick, pile=self),
+                           on_pile=len(self.cards) > 1,
+                           top_of_pile=True))
+        else:
+            card_widgets = [EmptyCardWidget()]
+        self.pile.contents.clear()
+        self.pile.contents.extend([(w, ('weight', 1)) for w in card_widgets])
+
+    def redraw(self):
+        self._update_pile()
 
     def selectable(self):
         return True
@@ -125,3 +148,8 @@ class CardPileWidget(urwid.WidgetWrap):
 
     def mouse_event(self, *args):
         return super(CardPileWidget, self).mouse_event(*args)
+
+    @property
+    def top(self):
+        card_widget, _ = self.pile.contents[-1]
+        return card_widget

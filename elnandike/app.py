@@ -16,19 +16,30 @@ def main(args):
     game = Game()
     statusbar = urwid.Text(u'Ready')
 
+    def update_status(text):
+        statusbar.set_text(text)
+
     def onclick(card_widget):
         # XXX: code below is meant just for testing the UI,
         # it's not related to actual game logic
         card_widget.face_up = not card_widget.face_up
         card_widget.highlighted = not card_widget.highlighted
 
-        text = 'Clicked: {}\nCard: {}\nHighlighted: {}'.format(
-            card_widget,
-            card_widget.card,
-            card_widget.highlighted,
+        update_status(
+            'Clicked: {}\nCard: {}\nHighlighted: {}'.format(
+                card_widget,
+                card_widget.card,
+                card_widget.highlighted,
+            )
         )
-        statusbar.set_text(text)
         card_widget.redraw()
+
+    def pile_card_clicked(card_widget, pile=None):
+        if not pile.top.face_up:
+            pile.top.face_up = True
+        else:
+            pile.cards.pop()
+            pile.redraw()
 
     main_layout = urwid.Pile([
         urwid.Columns([
@@ -42,7 +53,7 @@ def main(args):
         ]),
         urwid.Divider(),
         urwid.Columns([
-            CardPileWidget(pile, onclick=onclick)
+            CardPileWidget(pile, onclick=pile_card_clicked)
             for pile in game.tableau
         ]),
         urwid.Divider(),
