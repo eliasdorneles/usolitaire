@@ -18,7 +18,8 @@ class SpacerWidget(urwid.WidgetWrap):
 
 
 class EmptyCardWidget(urwid.WidgetWrap):
-    def __init__(self, **kw):
+    def __init__(self, onclick=None, **kw):
+        self.onclick = onclick
         self.text = urwid.Text(
             [
                 u'╭──────╮\n',
@@ -29,6 +30,14 @@ class EmptyCardWidget(urwid.WidgetWrap):
                 u'╰──────╯\n',
             ], wrap='clip')
         super(EmptyCardWidget, self).__init__(self.text)
+
+    def selectable(self):
+        return bool(self.onclick)
+
+    def mouse_event(self, size, event, button, col, row, focus):
+        if event == 'mouse press':
+            if self.onclick:
+                self.onclick(self)
 
 
 class CardWidget(urwid.WidgetWrap):
@@ -110,11 +119,12 @@ class CardWidget(urwid.WidgetWrap):
 
 
 class CardPileWidget(urwid.WidgetWrap):
-    def __init__(self, cards, onclick=None):
+    def __init__(self, cards, onclick=None, index=0):
         self.cards = cards
         self.onclick = onclick
         self.pile = urwid.Pile([])
         self._update_pile()
+        self.index = index
         super(CardPileWidget, self).__init__(self.pile)
 
     def _update_pile(self):
@@ -135,7 +145,7 @@ class CardPileWidget(urwid.WidgetWrap):
         else:
             card_widgets = [EmptyCardWidget()]
         self.pile.contents.clear()
-        self.pile.contents.extend([(w, ('weight', 1)) for w in card_widgets])
+        self.pile.contents.extend([(w, self.pile.options()) for w in card_widgets])
 
     def redraw(self):
         self._update_pile()
