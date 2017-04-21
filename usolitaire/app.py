@@ -48,13 +48,17 @@ class GameApp(object):
 
     def _update_stock_and_waste(self):
         if self.game.stock:
-            stock_widget = CardWidget(self.game.stock[-1], onclick=self.stock_clicked, playable=True)
+            stock_widget = CardWidget(self.game.stock[-1],
+                                      onclick=self.stock_clicked,
+                                      playable=True)
         else:
             stock_widget = EmptyCardWidget(onclick=self.redeal_stock)
         self._top_columns.contents[0] = (stock_widget, self._top_columns.options())
 
         if self.game.waste:
-            waste_widget = CardWidget(self.game.waste[-1], onclick=self.pile_card_clicked, playable=True)
+            waste_widget = CardWidget(self.game.waste[-1],
+                                      onclick=self.pile_card_clicked,
+                                      playable=True)
         else:
             waste_widget = EmptyCardWidget()
         self._top_columns.contents[1] = (waste_widget, self._top_columns.options())
