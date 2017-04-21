@@ -89,11 +89,11 @@ class CardWidget(urwid.WidgetWrap):
                 filling = [u'│', (style, u'╬╬╬╬╬╬'), u'│\n'] * 4
         else:
             rank, suit = (self.card.rank, self.card.suit_symbol)
-            filling = [u'│', (redornot, '{}   {}'.format(rank.ljust(2), suit)), '│\n']
+            filling = [u'│', (redornot, u'{}   {}'.format(rank.ljust(2), suit)), u'│\n']
             if not self.on_pile or self.top_of_pile:
                 filling += (
                     [u'│', (style, u'      '), u'│\n'] * 2 +
-                    [u'│', (redornot, '{}   {}'.format(suit, rank.rjust(2))), '│\n']
+                    [u'│', (redornot, u'{}   {}'.format(suit, rank.rjust(2))), u'│\n']
                 )
         top = u'├──────┤\n' if self.on_pile and not self.bottom_of_pile else u'╭──────╮\n'
         text = [top] + filling
@@ -156,7 +156,7 @@ class CardPileWidget(urwid.WidgetWrap):
                            top_of_pile=True))
         else:
             card_widgets = [EmptyCardWidget(onclick=partial(self.onclick, pile=self))]
-        self.pile.contents.clear()
+        self.pile.contents[:] = []
         self.pile.contents.extend([(w, self.pile.options()) for w in card_widgets])
 
     def iter_widgets(self):
