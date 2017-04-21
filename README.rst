@@ -18,7 +18,7 @@ Play solitaire in your terminal.
 
 Point and click to move cards.
 
-.. image:: screenshot-usolitaire.png
+.. image:: https://raw.githubusercontent.com/eliasdorneles/usolitaire/master/screenshot-usolitaire.png
 
 
 * Free software: MIT license
