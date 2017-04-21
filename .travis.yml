@@ -1,0 +1,30 @@
+# Config file for automatic testing at travis-ci.org
+# This file will be regenerated if you run travis_pypi_setup.py
+
+language: python
+python: 3.5
+
+env:
+  - TOXENV=py35
+  - TOXENV=py34
+  - TOXENV=py33
+  - TOXENV=py27
+  - TOXENV=py26
+  - TOXENV=pypy
+
+# command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
+install: pip install -U tox
+
+# command to run tests, e.g. python setup.py test
+script: tox -e ${TOXENV}
+
+deploy:
+  provider: pypi
+  distributions: sdist bdist_wheel
+  user: eljunior
+  password:
+    secure: AHypX0hJbhkk/2kZa3dIInsWXCiKUxtScKdhbDGbaxJAncZ9Z0fRj/Xh7S9gAh88wkcRwS7C4yVzW12qDs/PDTKkhW4I7lJwvhtg5+Yfb9hgokw1359/DfTOeaInfS5hIXUx/YkLY2KqNQ8bwj1f9oc6vOe/lanpM+2tsW5pm1kKSt/7paqHuNIFqxu9Q7yLXbkW2443oyUkAR6cNC+dZ8d2QwFCqDiHfA3+Q02obkrg4X9GepatrgstwKBHUotdw5nr0xV/j+nENrID3lyJNvg/eRCsZIk1WbguFxVDEBhoJB505uBdrA4KuCoXO4xShAeRy6B6rZSqw74hK8eHMbHAm1FDdoPvkPrOJ2VFUvtBRqaYI03cUDHh+h1r2mn/Cth9EiIB5ja5CYsyIzAicu7hJ/jPElRpNvAoNjaAltjOSiG7TLQJFhknhtr8gYj4NxoE5MpM/lz/TgNluY/HikQE9B0uqAR/NJbhLEBF+Ap+J17YZQFBeqv8wb7YZIIh8oLkwqEBcYly5EVpaT+xLkfA+cgdbco+MPV625sB7z7u/zdPG031qsNe8YcRDzsWbiSTcaC7QSle+ohsoTbPKUbmkSt3Wt/W2JK4PUzvOEisKBGDKUEHjSkGiZeMtP/5Ry6qP1nZqi4Z7pzTQEpAp6J4nOjB57jSbf1relJr0c0=
+  on:
+    tags: true
+    repo: eliasdorneles/usolitaire
+    condition: $TOXENV == py27
