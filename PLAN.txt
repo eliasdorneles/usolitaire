@@ -20,6 +20,7 @@ Things to figure out:
     [X] Disallow invalid movements (card stays where it is)
     [ ] Only send to foundation if it's double-click (needs double-click detection)
     [ ] Detect if game is won, and display a neat message
+    [ ] Make game playable without mouse (arrow keys and enter)
 
 
  ╭──────╮  ╭──────╮            ╭──────╮  ╭──────╮  ╭──────╮  ╭──────╮
