@@ -18,6 +18,10 @@ Play solitaire in your terminal.
 
 Point and click to move cards.
 
+Install with:
+
+    pip install usolitaire
+
 .. image:: https://raw.githubusercontent.com/eliasdorneles/usolitaire/master/screenshot-usolitaire.png
 
 
