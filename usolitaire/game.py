@@ -85,7 +85,7 @@ class Game(object):
         self.stock = list(reversed(self.waste))
         for card in self.stock:
             card.face_up = False
-        self.waste.clear()
+        self.waste[:] = []
 
     def _is_valid_move_to_tableau(self, source_card, target_card):
         if target_card is None:
