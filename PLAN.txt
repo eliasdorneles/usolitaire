@@ -21,6 +21,7 @@ Things to figure out:
     [ ] Only send to foundation if it's double-click (needs double-click detection)
     [ ] Detect if game is won, and display a neat message
     [ ] Make game playable without mouse (arrow keys and enter)
+    [ ] Exit on ESC, show message explaining how to quit
 
 
  ╭──────╮  ╭──────╮            ╭──────╮  ╭──────╮  ╭──────╮  ╭──────╮
