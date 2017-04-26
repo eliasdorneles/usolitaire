@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import urwid
 from functools import partial
-
+import time
 
 PALETTE = [
     ('red', 'dark red', ''),
@@ -50,7 +50,7 @@ class CardWidget(urwid.WidgetWrap):
     highlighted = False
 
     def __init__(self, card, playable=False, on_pile=False,
-                 bottom_of_pile=False, top_of_pile=False, onclick=None):
+                 bottom_of_pile=False, top_of_pile=False, onclick=None, on_double_click=None):
         self._card = card
         self.playable = playable
         self.on_pile = on_pile
@@ -59,6 +59,8 @@ class CardWidget(urwid.WidgetWrap):
         self.text = urwid.Text(self._draw_card_text(), wrap='clip')
         self.highlighted = False
         self.onclick = onclick
+        self.on_double_click = on_double_click
+        self.last_time_clicked = None
         super(CardWidget, self).__init__(self.text)
 
     def __repr__(self):
@@ -74,8 +76,14 @@ class CardWidget(urwid.WidgetWrap):
 
     def mouse_event(self, size, event, button, col, row, focus):
         if self.playable and event == 'mouse press':
-            if self.onclick:
-                self.onclick(self)
+            now = time.time()
+            if (self.last_time_clicked and (now - self.last_time_clicked < 0.5)):
+                if self.on_double_click:
+                    self.on_double_click(self)
+            else:
+                if self.onclick:
+                    self.onclick(self)
+            self.last_time_clicked = now
 
     def _draw_card_text(self):
         style = 'selected' if self.highlighted else ''
@@ -130,9 +138,10 @@ class CardWidget(urwid.WidgetWrap):
 
 
 class CardPileWidget(urwid.WidgetWrap):
-    def __init__(self, cards, onclick=None, index=0):
+    def __init__(self, cards, onclick=None, index=0, on_double_click=None):
         self.cards = cards
         self.onclick = onclick
+        self.on_double_click = on_double_click
         self.pile = urwid.Pile([])
         self._update_pile()
         self.index = index
@@ -143,7 +152,8 @@ class CardPileWidget(urwid.WidgetWrap):
             bottom_cards, card_on_top = self.cards[:-1], self.cards[-1]
             card_widgets = [
                 CardWidget(c,
-                           onclick=partial(self.onclick, pile=self),
+                           onclick=self.callback(self.onclick),
+                           on_double_click=self.callback(self.on_double_click),
                            playable=c.face_up,
                            on_pile=True,
                            bottom_of_pile=(i == 0))
@@ -151,13 +161,17 @@ class CardPileWidget(urwid.WidgetWrap):
             card_widgets.append(
                 CardWidget(card_on_top,
                            playable=True,
-                           onclick=partial(self.onclick, pile=self),
+                           onclick=self.callback(self.onclick),
+                           on_double_click=self.callback(self.on_double_click),
                            on_pile=len(self.cards) > 1,
                            top_of_pile=True))
         else:
-            card_widgets = [EmptyCardWidget(onclick=partial(self.onclick, pile=self))]
+            card_widgets = [EmptyCardWidget(onclick=self.callback(self.onclick))]
         self.pile.contents[:] = []
         self.pile.contents.extend([(w, self.pile.options()) for w in card_widgets])
+
+    def callback(self, callback):
+        return partial(callback, pile=self) if callback else None
 
     def iter_widgets(self):
         for w, _ in self.pile.contents:

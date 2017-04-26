@@ -9,7 +9,6 @@ import urwid
 from .game import Game, InvalidMove
 from .ui import CardWidget, CardPileWidget, SpacerWidget, EmptyCardWidget, PALETTE
 
-
 Selection = namedtuple('Selection', 'card tableau_index')
 
 
@@ -43,7 +42,7 @@ class GameApp(object):
     def _update_tableaus(self):
         for i, pile in enumerate(self.game.tableau):
             self._tableau_columns.contents[i] = (
-                CardPileWidget(pile, onclick=self.pile_card_clicked, index=i),
+                CardPileWidget(pile, onclick=self.pile_card_clicked, on_double_click=self.pile_card_double_clicked, index=i),
                 self._tableau_columns.options())
 
     def _update_stock_and_waste(self):
@@ -57,7 +56,8 @@ class GameApp(object):
 
         if self.game.waste:
             waste_widget = CardWidget(self.game.waste[-1],
-                                      onclick=self.pile_card_clicked,
+                                      onclick=self._card_from_waste_clicked,
+                                      on_double_click=self.waste_card_double_clicked,
                                       playable=True)
         else:
             waste_widget = EmptyCardWidget()
@@ -118,43 +118,25 @@ class GameApp(object):
             card.redraw()
 
     def _card_from_waste_clicked(self, card_widget):
-        if self.game.waste and card_widget.card == self.game.waste[-1]:
-            try:
-                self.game.move_to_foundation_from_waste()
-            except InvalidMove:
-                self.select_card(card_widget, None)
-            else:
-                self._update_stock_and_waste()
-                self._update_foundations()
-        else:
-            self.update_status('Invalid move')
+        self.select_card(card_widget, None)
 
     def _card_from_tableau_clicked(self, card_widget, pile):
-        try:
-            # TODO: do this only if it's double-click
-            self.game.move_to_foundation_from_tableau(pile.index)
-        except InvalidMove:
-            if not self.current_selection.card or self.current_selection.card == card_widget:
-                self.select_card(card_widget, pile)
-                return
+        if not self.current_selection.card or self.current_selection.card == card_widget:
+            self.select_card(card_widget, pile)
+            return
 
-            src_index = self.current_selection.tableau_index
-            try:
-                if src_index is None:
-                    self.game.move_from_waste_to_tableau(pile.index)
-                else:
-                    self.game.move_tableau_pile(src_index, pile.index)
-            except InvalidMove:
-                self.update_status('Invalid move: %r %r' % (src_index, pile.index))
+        src_index = self.current_selection.tableau_index
+        try:
+            if src_index is None:
+                self.game.move_from_waste_to_tableau(pile.index)
             else:
-                self._update_stock_and_waste()
-                self._update_tableaus()
-                self.clear_selection()
+                self.game.move_tableau_pile(src_index, pile.index)
+        except InvalidMove:
+            self.update_status('Invalid move: %r %r' % (src_index, pile.index))
         else:
-            pile.redraw()
-            self._update_foundations()
+            self._update_stock_and_waste()
+            self._update_tableaus()
             self.clear_selection()
-            self.update_status('Great job!!')
 
     def pile_card_clicked(self, card_widget, pile=None):
         if pile and hasattr(pile.top, 'face_up') and not pile.top.face_up:
@@ -163,10 +145,35 @@ class GameApp(object):
             self.update_status('Neat!')
             return
 
-        if pile is None:
-            self._card_from_waste_clicked(card_widget)
+        self._card_from_tableau_clicked(card_widget, pile)
+
+    def waste_card_double_clicked(self, card_widget, pile=None):
+        try:
+            self.game.move_to_foundation_from_waste()
+        except InvalidMove:
+            self.update_status("Can't move card to foundation")
         else:
-            self._card_from_tableau_clicked(card_widget, pile)
+            self._update_stock_and_waste()
+            self._update_foundations()
+
+
+    def pile_card_double_clicked(self, card_widget, pile=None):
+        if pile and hasattr(pile.top, 'face_up') and not pile.top.face_up:
+            pile.top.face_up = True
+            self.clear_selection()
+            self.update_status('Neat!')
+            return
+
+        try:
+            self.game.move_to_foundation_from_tableau(pile.index)
+        except InvalidMove:
+            self.update_status("Can't move card to foundation")
+        else:
+            pile.redraw()
+            self._update_foundations()
+            self.clear_selection()
+            self.update_status('Great job!!')
+
 
     def update_status(self, text='', append=False):
         if append:

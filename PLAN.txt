@@ -18,10 +18,11 @@ Things to figure out:
     [X] Make sure there is only one card selected at one time
     [X] Make all cards facing up in the tableau playable
     [X] Disallow invalid movements (card stays where it is)
-    [ ] Only send to foundation if it's double-click (needs double-click detection)
+    [X] Only send to foundation if it's double-click (needs double-click detection)
     [ ] Detect if game is won, and display a neat message
     [ ] Make game playable without mouse (arrow keys and enter)
     [ ] Exit on ESC, show message explaining how to quit
+
 
 
  ╭──────╮  ╭──────╮            ╭──────╮  ╭──────╮  ╭──────╮  ╭──────╮
