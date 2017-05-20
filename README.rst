@@ -20,6 +20,10 @@ Install with:
 
 Run with:
 
+    usolitaire
+
+To run from sources, you can run with:
+
     python -m usolitaire.app
     
 .. image:: https://raw.githubusercontent.com/eliasdorneles/usolitaire/master/screenshot-usolitaire.png
