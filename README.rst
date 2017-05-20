@@ -18,6 +18,10 @@ Install with:
 
     pip install usolitaire
 
+Run with:
+
+    python -m usolitaire.app
+    
 .. image:: https://raw.githubusercontent.com/eliasdorneles/usolitaire/master/screenshot-usolitaire.png
 
 
