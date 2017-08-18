@@ -13,27 +13,44 @@ PALETTE = [
 SIZE_MOD = {'medium': (8,6)}
 
 
+class BaseCardWidget(urwid.WidgetWrap):
+    def __init__(self, *args, card_size='medium', **kw):
+        self.card_columns, self.card_rows = SIZE_MOD[card_size]
+        super(BaseCardWidget, self).__init__(*args, **kw)
+        self.redraw()
 
-class SpacerWidget(urwid.WidgetWrap):
-    def __init__(self,card_size='medium', **kw):
-        columns, rows = SIZE_MOD[card_size]
 
-        self.text = urwid.Text([u' '* columns +'\n'] * rows, wrap='clip')
+    def redraw(self):
+        self.text.set_text(self._draw_card_text())
+
+    def _draw_card_text(self):
+        raise NotImplementedError
+
+
+
+class SpacerWidget(BaseCardWidget):
+    def __init__(self, **kw):
+
+        self.text = urwid.Text('', wrap='clip')
         super(SpacerWidget, self).__init__(self.text)
 
+    def _draw_card_text(self):
+        return [u' '* self.card_columns +'\n'] * self.card_rows
 
-class EmptyCardWidget(urwid.WidgetWrap):
-    def __init__(self, onclick=None, card_size='medium' ,**kw):
+
+class EmptyCardWidget(BaseCardWidget):
+    def __init__(self, onclick=None, **kw):
         self.onclick = onclick
-        columns, rows = SIZE_MOD[card_size]
+        self.text = urwid.Text('', wrap='clip')
 
-        self.text = urwid.Text(
-            [
-                u'╭' + '─' * (columns-2) + '╮\n' 
-                + (rows-2) * (u'│'+ ' ' * (columns-2) + '│\n')
-                + u'╰' + '─' * (columns-2) + '╯\n'
-            ], wrap='clip')
         super(EmptyCardWidget, self).__init__(self.text)
+
+    def _draw_card_text(self):
+        return [
+                u'╭' + '─' * (self.card_columns-2) + '╮\n' 
+                + (self.card_rows-2) * (u'│'+ ' ' * (self.card_columns-2) + '│\n')
+                + u'╰' + '─' * (self.card_columns-2) + '╯\n'
+            ]
 
     def selectable(self):
         return bool(self.onclick)
@@ -43,25 +60,21 @@ class EmptyCardWidget(urwid.WidgetWrap):
             if self.onclick:
                 self.onclick(self)
 
-    def redraw(self):
-        """no-op"""
-
     def iter_widgets(self):
         return iter([])
 
 
-class CardWidget(urwid.WidgetWrap):
+class CardWidget(BaseCardWidget):
     highlighted = False
 
-    def __init__(self, card, card_size='medium', playable=False, on_pile=False,
+    def __init__(self, card, playable=False, on_pile=False,
                  bottom_of_pile=False, top_of_pile=False, onclick=None, on_double_click=None):
         self._card = card
-        self.card_size = card_size
         self.playable = playable
         self.on_pile = on_pile
         self.bottom_of_pile = bottom_of_pile
         self.top_of_pile = top_of_pile
-        self.text = urwid.Text(self._draw_card_text(), wrap='clip')
+        self.text = urwid.Text('', wrap='clip')
         self.highlighted = False
         self.onclick = onclick
         self.on_double_click = on_double_click
@@ -91,7 +104,7 @@ class CardWidget(urwid.WidgetWrap):
             self.last_time_clicked = now
 
     def _draw_card_text(self):
-        columns, rows = SIZE_MOD[self.card_size]
+        columns, rows = self.card_columns, self.card_rows
 
         style = 'selected' if self.highlighted else ''
         redornot = 'red' if self.card.suit in ('hearts', 'diamonds') else ''
@@ -148,8 +161,6 @@ class CardWidget(urwid.WidgetWrap):
         self.card.face_up = bool(val)
         self.redraw()
 
-    def redraw(self):
-        self.text.set_text(self._draw_card_text())
 
 
 class CardPileWidget(urwid.WidgetWrap):
