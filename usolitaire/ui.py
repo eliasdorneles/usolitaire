@@ -10,24 +10,28 @@ PALETTE = [
     ('selected', '', 'yellow'),
 ]
 
+SIZE_MOD = {'medium': (8,6)}
+
+
 
 class SpacerWidget(urwid.WidgetWrap):
-    def __init__(self, **kw):
-        self.text = urwid.Text([u'        \n'] * 6, wrap='clip')
+    def __init__(self,card_size='medium', **kw):
+        columns, rows = SIZE_MOD[card_size]
+
+        self.text = urwid.Text([u' '* columns +'\n'] * rows, wrap='clip')
         super(SpacerWidget, self).__init__(self.text)
 
 
 class EmptyCardWidget(urwid.WidgetWrap):
-    def __init__(self, onclick=None, **kw):
+    def __init__(self, onclick=None, card_size='medium' ,**kw):
         self.onclick = onclick
+        columns, rows = SIZE_MOD[card_size]
+
         self.text = urwid.Text(
             [
-                u'╭──────╮\n',
-                u'│      │\n',
-                u'│      │\n',
-                u'│      │\n',
-                u'│      │\n',
-                u'╰──────╯\n',
+                u'╭' + '─' * (columns-2) + '╮\n' 
+                + (rows-2) * (u'│'+ ' ' * (columns-2) + '│\n')
+                + u'╰' + '─' * (columns-2) + '╯\n'
             ], wrap='clip')
         super(EmptyCardWidget, self).__init__(self.text)
 
@@ -49,9 +53,10 @@ class EmptyCardWidget(urwid.WidgetWrap):
 class CardWidget(urwid.WidgetWrap):
     highlighted = False
 
-    def __init__(self, card, playable=False, on_pile=False,
+    def __init__(self, card, card_size='medium', playable=False, on_pile=False,
                  bottom_of_pile=False, top_of_pile=False, onclick=None, on_double_click=None):
         self._card = card
+        self.card_size = card_size
         self.playable = playable
         self.on_pile = on_pile
         self.bottom_of_pile = bottom_of_pile
@@ -86,27 +91,37 @@ class CardWidget(urwid.WidgetWrap):
             self.last_time_clicked = now
 
     def _draw_card_text(self):
+        columns, rows = SIZE_MOD[self.card_size]
+
         style = 'selected' if self.highlighted else ''
         redornot = 'red' if self.card.suit in ('hearts', 'diamonds') else ''
         if self.highlighted:
             redornot = 'selected' + redornot
         if not self.face_up:
+            face_down_middle_filling = (columns-2) * u'╬'
             if self.on_pile and not self.top_of_pile:
-                filling = [u'│', (style, u'╬╬╬╬╬╬'), u'│\n']
+                filling = [u'│', (style, face_down_middle_filling), u'│\n']
             else:
-                filling = [u'│', (style, u'╬╬╬╬╬╬'), u'│\n'] * 4
+                filling = [u'│', (style, face_down_middle_filling), u'│\n'] * (rows-2)
         else:
             rank, suit = (self.card.rank, self.card.suit_symbol)
-            filling = [u'│', (redornot, u'{}   {}'.format(rank.ljust(2), suit)), u'│\n']
+            spaces = (columns-5) * ' '
+            filling = [u'│', (redornot, u'{}{}{}'.format(rank.ljust(2), spaces, suit)), u'│\n']
             if not self.on_pile or self.top_of_pile:
                 filling += (
-                    [u'│', (style, u'      '), u'│\n'] * 2 +
-                    [u'│', (redornot, u'{}   {}'.format(suit, rank.rjust(2))), u'│\n']
+                    [u'│', (style, u' ' * (columns-2)), u'│\n'] * (rows-4) +
+                    [u'│', (redornot, u'{}{}{}'.format(suit, spaces,rank.rjust(2))), u'│\n']
                 )
-        top = u'├──────┤\n' if self.on_pile and not self.bottom_of_pile else u'╭──────╮\n'
+         
+
+        if self.on_pile and not self.bottom_of_pile: 
+            top = u'├'+ '─' * (columns-2) +'┤\n'
+        else: 
+            top = u'╭'+ '─' * (columns-2) +'╮\n'
+
         text = [top] + filling
         if not self.on_pile or self.top_of_pile:
-            text += [u'╰──────╯\n']
+            text += [u'╰' + '─' * (columns-2) + '╯\n']
 
         if isinstance(text[-1], tuple):
             text[-1] = text[-1][0], text[-1][1].strip()
