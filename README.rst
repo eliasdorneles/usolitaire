@@ -9,6 +9,9 @@ usolitaire
 .. image:: https://img.shields.io/travis/eliasdorneles/usolitaire.svg
         :target: https://travis-ci.org/eliasdorneles/usolitaire
 
+.. image:: https://cloud.githubusercontent.com/assets/2883345/11325206/336ea5f4-9150-11e5-9e90-d86ad31993d8.png
+        :target: https://www.recurse.com/scout/click?t=5372463d63166734808f47d8eb0124cb
+
 
 Play solitaire in your terminal.
 
