@@ -41,6 +41,7 @@ class SpacerWidget(BaseCardWidget):
 class EmptyCardWidget(BaseCardWidget):
     def __init__(self, onclick=None, **kw):
         self.onclick = onclick
+        self.on_double_click = None
         self.text = urwid.Text('', wrap='clip')
 
         super(EmptyCardWidget, self).__init__(self.text)
@@ -54,6 +55,9 @@ class EmptyCardWidget(BaseCardWidget):
 
     def selectable(self):
         return bool(self.onclick)
+
+    def keypress(self, size, key):
+        return key
 
     def mouse_event(self, size, event, button, col, row, focus):
         if event == 'mouse press':

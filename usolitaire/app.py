@@ -11,6 +11,9 @@ from .ui import CardWidget, CardPileWidget, SpacerWidget, EmptyCardWidget, PALET
 
 Selection = namedtuple('Selection', 'card tableau_index')
 
+app = None
+shifted_number_keys = ('!', '@', '#', '$', '%', '^', '&')
+
 
 class GameApp(object):
     def __init__(self):
@@ -181,8 +184,66 @@ class GameApp(object):
         self._statusbar.set_text(text)
 
 
-def exit_on_q(key):
-    if key in ('q', 'Q', 'esc'):
+def unhandled_input(key):
+    # Single Click the pile: 1, 2, 3, 4, 5, 6, 7
+    if key in [str(x) for x in range(1, 8)]:
+        selected_pile = app._tableau_columns[int(key)-1]
+        selected_pile.top.onclick(selected_pile.top)
+
+    # Double Click the pile: Shift + 1, 2, 3, 4, 5, 6, 7
+
+    if key in shifted_number_keys:
+        double_clicked_card = app._tableau_columns[shifted_number_keys.index(key)].top
+
+        if double_clicked_card.on_double_click:
+            double_clicked_card.on_double_click(double_clicked_card)
+
+    # Stock Pile: Space or Enter
+
+    if key in (' ', 'enter'):
+        stock_pile = app._top_columns[0]
+        stock_pile.onclick(stock_pile)
+
+    # Waste Pile: 0, Shift + 0, . (for numpad)
+
+    if key == '0':
+        waste_pile = app._top_columns[1]
+        waste_pile.onclick(waste_pile)
+
+    if key in (')', '.'):
+        waste_pile = app._top_columns[1]
+
+        if waste_pile.on_double_click:
+            waste_pile.on_double_click(double_clicked_card)
+
+    # Select through the cards in each pile: q, w, e, r, t, y, u
+    # (the keys below their respective numbers)
+
+    if key in tuple('qwertyu'):
+        selected_pile = app._tableau_columns['qwertyu'.index(key)]
+        if isinstance(selected_pile, EmptyCardWidget):
+            return
+
+        cards = (x for x, _ in selected_pile.pile.contents)
+        already_selected = any(x.highlighted for x in cards)
+
+        for card in cards:
+            if card.highlighted:
+                card.onclick(card)
+                already_selected = False
+                continue
+
+            if card.face_up and not already_selected:
+                card.onclick(card)
+                break
+
+    # Restart Game
+    if key == 'esc':
+        main()
+
+    # Exit Game
+
+    if key in ('Q', 'x'):
         raise urwid.ExitMainLoop()
 
 
@@ -191,11 +252,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.parse_args()
 
+    global app
     app = GameApp()
     loop = urwid.MainLoop(
         urwid.Filler(app.main_layout, valign='top'),
         PALETTE,
-        unhandled_input=exit_on_q,
+        unhandled_input=unhandled_input,
     )
     loop.run()
 
