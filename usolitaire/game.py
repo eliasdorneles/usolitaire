@@ -62,6 +62,24 @@ def rank_diff(first, second):
 
 
 class Game(object):
+    """
+    Class implementing the game logic.
+
+    The game is played with a standard deck of 52 cards.
+
+    The cards are dealt into 7 piles, with the first pile containing one card,
+    the second pile containing two cards, and so on.
+    The top card of each pile is face up; all others are face down.
+    The remaining cards are placed face down to form the stock.
+
+    How to use:
+    >>> game = Game()
+    >>> game.deal_from_stock()
+    >>> game.move_from_waste_to_tableau(0)
+    >>> game.move_tableau_pile(0, 1) # moving a pile
+    >>> game.move_tableau_pile(1, 2) # moving another pile
+    >>> game.move_from_waste_to_tableau(0)
+    """
     def __init__(self):
         deck = Deck()
         deck.shuffle()
@@ -76,18 +94,21 @@ class Game(object):
         self.foundations = [[], [], [], []]
 
     def deal_from_stock(self):
+        """Deal one card from stock to waste"""
         if not self.stock:
             raise InvalidMove("No cards in stock")
         self.waste.append(self.stock.pop())
         self.waste[-1].face_up = True
 
     def restore_stock(self):
+        """Restore stock from waste"""
         self.stock = list(reversed(self.waste))
         for card in self.stock:
             card.face_up = False
         self.waste[:] = []
 
     def _is_valid_move_to_tableau(self, source_card, target_card):
+        """Check if the given card can be moved to the given tableau pile"""
         if target_card is None:
             return source_card.rank == 'K'
         if not source_card.face_up or not target_card.face_up:
@@ -96,6 +117,7 @@ class Game(object):
         return diff == 1 and suit_color(source_card.suit) != suit_color(target_card.suit)
 
     def move_from_waste_to_tableau(self, target_index):
+        """Move card from waste to tableau"""
         assert target_index in range(7)
         target_pile = self.tableau[target_index]
         target_card = target_pile[-1] if target_pile else None
@@ -105,7 +127,10 @@ class Game(object):
             raise InvalidMove()
 
     def move_tableau_pile(self, src_index, target_index):
-        """Move pile, assuming that cards facing up are in the proper order"""
+        """
+        Move pile, assuming that cards facing up are in the proper order
+        and that the target pile is empty or the top card is facing up.
+        """
         assert src_index in range(7), "Invalid index: %r" % src_index
         assert target_index in range(7), "Invalid index: %r" % target_index
         if src_index == target_index:
@@ -122,6 +147,7 @@ class Game(object):
         raise InvalidMove()
 
     def _find_foundation_pile(self, card_to_move):
+        """Find a foundation pile where the given card can be moved"""
         for pile in self.foundations:
             if any([
                     not pile and card_to_move.rank == 'A',
@@ -131,6 +157,10 @@ class Game(object):
                 return pile
 
     def move_to_foundation_from_waste(self):
+        """
+        Move card from waste to foundation.
+        Card must be facing up and must be the next card in the foundation pile.
+        """
         if not self.waste:
             raise InvalidMove()
         foundation_pile = self._find_foundation_pile(self.waste[-1])
@@ -139,6 +169,10 @@ class Game(object):
         foundation_pile.append(self.waste.pop())
 
     def move_to_foundation_from_tableau(self, index):
+        """
+        Move card from tableau to foundation.
+        Card must be facing up and must be the next card in the foundation pile.
+        """
         assert index in range(7), "Invalid index: %r" % index
         pile = self.tableau[index]
         if not pile:
@@ -151,3 +185,7 @@ class Game(object):
         if foundation_pile is None:
             raise InvalidMove()
         foundation_pile.append(pile.pop())
+
+    def is_won(self):
+        """Check if the game is won"""
+        return all(len(pile) == 13 for pile in self.foundations)
