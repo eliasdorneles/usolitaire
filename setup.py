@@ -3,46 +3,45 @@
 
 from setuptools import setup
 
-with open('README.rst') as readme_file:
+with open("README.rst") as readme_file:
     readme = readme_file.read()
 
 requirements = [
-    'urwid',
+    "urwid",
 ]
 
 setup(
-    name='usolitaire',
-    version='0.2.1',
+    name="usolitaire",
+    version="0.2.1",
     description="Solitaire in your terminal",
     long_description=readme,
     author="Elias Dorneles",
-    author_email='eliasdorneles@gmail.com',
-    url='https://github.com/eliasdorneles/usolitaire',
+    author_email="eliasdorneles@gmail.com",
+    url="https://github.com/eliasdorneles/usolitaire",
     entry_points={
-        'console_scripts': {
-            'usolitaire = usolitaire.app:main',
+        "console_scripts": {
+            "usolitaire = usolitaire.app:main",
         }
     },
     packages=[
-        'usolitaire',
+        "usolitaire",
     ],
-    package_dir={'usolitaire':
-                 'usolitaire'},
+    package_dir={"usolitaire": "usolitaire"},
     include_package_data=True,
     install_requires=requirements,
     license="MIT license",
     zip_safe=False,
-    keywords='usolitaire',
+    keywords="usolitaire",
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Natural Language :: English',
+        "Development Status :: 2 - Pre-Alpha",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Natural Language :: English",
         "Programming Language :: Python :: 2",
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
     ],
 )

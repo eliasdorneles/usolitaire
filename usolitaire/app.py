@@ -9,56 +9,68 @@ import urwid
 from .game import Game, InvalidMove
 from .ui import CardWidget, CardPileWidget, SpacerWidget, EmptyCardWidget, PALETTE
 
-Selection = namedtuple('Selection', 'card tableau_index')
+Selection = namedtuple("Selection", "card tableau_index")
 
 
 class GameApp(object):
     def __init__(self):
         self.game = Game()
-        self._statusbar = urwid.Text(u'Ready')
+        self._statusbar = urwid.Text("Ready")
         self.current_selection = Selection(None, None)
         self._tableau_columns = urwid.Columns([EmptyCardWidget() for _ in range(7)])
-        self._top_columns = urwid.Columns([
-            EmptyCardWidget(),
-            EmptyCardWidget(),
-            SpacerWidget(),
-            EmptyCardWidget(),
-            EmptyCardWidget(),
-            EmptyCardWidget(),
-            EmptyCardWidget(),
-        ])
+        self._top_columns = urwid.Columns(
+            [
+                EmptyCardWidget(),
+                EmptyCardWidget(),
+                SpacerWidget(),
+                EmptyCardWidget(),
+                EmptyCardWidget(),
+                EmptyCardWidget(),
+                EmptyCardWidget(),
+            ]
+        )
         self._update_stock_and_waste()
         self._update_foundations()
         self._update_tableaus()
 
-        self.main_layout = urwid.Pile([
-            self._top_columns,
-            urwid.Divider(),
-            self._tableau_columns,
-            urwid.Divider(),
-            self._statusbar,
-        ])
+        self.main_layout = urwid.Pile(
+            [
+                self._top_columns,
+                urwid.Divider(),
+                self._tableau_columns,
+                urwid.Divider(),
+                self._statusbar,
+            ]
+        )
 
     def _update_tableaus(self):
         for i, pile in enumerate(self.game.tableau):
             self._tableau_columns.contents[i] = (
-                CardPileWidget(pile, onclick=self.pile_card_clicked, on_double_click=self.pile_card_double_clicked, index=i),
-                self._tableau_columns.options())
+                CardPileWidget(
+                    pile,
+                    onclick=self.pile_card_clicked,
+                    on_double_click=self.pile_card_double_clicked,
+                    index=i,
+                ),
+                self._tableau_columns.options(),
+            )
 
     def _update_stock_and_waste(self):
         if self.game.stock:
-            stock_widget = CardWidget(self.game.stock[-1],
-                                      onclick=self.stock_clicked,
-                                      playable=True)
+            stock_widget = CardWidget(
+                self.game.stock[-1], onclick=self.stock_clicked, playable=True
+            )
         else:
             stock_widget = EmptyCardWidget(onclick=self.redeal_stock)
         self._top_columns.contents[0] = (stock_widget, self._top_columns.options())
 
         if self.game.waste:
-            waste_widget = CardWidget(self.game.waste[-1],
-                                      onclick=self._card_from_waste_clicked,
-                                      on_double_click=self.waste_card_double_clicked,
-                                      playable=True)
+            waste_widget = CardWidget(
+                self.game.waste[-1],
+                onclick=self._card_from_waste_clicked,
+                on_double_click=self.waste_card_double_clicked,
+                playable=True,
+            )
         else:
             waste_widget = EmptyCardWidget()
         self._top_columns.contents[1] = (waste_widget, self._top_columns.options())
@@ -71,13 +83,13 @@ class GameApp(object):
     def stock_clicked(self, stock_widget):
         self.game.deal_from_stock()
         self._update_stock_and_waste()
-        self.update_status('Dealt from stock')
+        self.update_status("Dealt from stock")
         self.clear_selection()
 
     def redeal_stock(self, stock_widget):
         self.game.restore_stock()
         self._update_stock_and_waste()
-        self.update_status('Restored stock')
+        self.update_status("Restored stock")
         self.clear_selection()
 
     def iter_allcards(self):
@@ -90,7 +102,7 @@ class GameApp(object):
             if isinstance(w, CardWidget):
                 yield w
             else:
-                iter_widgets = getattr(w, 'iter_widgets', lambda: [])
+                iter_widgets = getattr(w, "iter_widgets", lambda: [])
                 for w in iter_widgets():
                     yield w
 
@@ -110,7 +122,9 @@ class GameApp(object):
         card_widget.highlighted = should_highlight
 
         if should_highlight:
-            self.current_selection = Selection(card_widget, getattr(pile, 'index', None))
+            self.current_selection = Selection(
+                card_widget, getattr(pile, "index", None)
+            )
         else:
             self.current_selection = Selection(None, None)
 
@@ -121,7 +135,10 @@ class GameApp(object):
         self.select_card(card_widget, None)
 
     def _card_from_tableau_clicked(self, card_widget, pile):
-        if not self.current_selection.card or self.current_selection.card == card_widget:
+        if (
+            not self.current_selection.card
+            or self.current_selection.card == card_widget
+        ):
             self.select_card(card_widget, pile)
             return
 
@@ -132,17 +149,17 @@ class GameApp(object):
             else:
                 self.game.move_tableau_pile(src_index, pile.index)
         except InvalidMove:
-            self.update_status('Invalid move: %r %r' % (src_index, pile.index))
+            self.update_status("Invalid move: %r %r" % (src_index, pile.index))
         else:
             self._update_stock_and_waste()
             self._update_tableaus()
             self.clear_selection()
 
     def pile_card_clicked(self, card_widget, pile=None):
-        if pile and hasattr(pile.top, 'face_up') and not pile.top.face_up:
+        if pile and hasattr(pile.top, "face_up") and not pile.top.face_up:
             pile.top.face_up = True
             self.clear_selection()
-            self.update_status('Neat!')
+            self.update_status("Neat!")
             return
 
         self._card_from_tableau_clicked(card_widget, pile)
@@ -156,12 +173,11 @@ class GameApp(object):
             self._update_stock_and_waste()
             self._update_foundations()
 
-
     def pile_card_double_clicked(self, card_widget, pile=None):
-        if pile and hasattr(pile.top, 'face_up') and not pile.top.face_up:
+        if pile and hasattr(pile.top, "face_up") and not pile.top.face_up:
             pile.top.face_up = True
             self.clear_selection()
-            self.update_status('Neat!')
+            self.update_status("Neat!")
             return
 
         try:
@@ -172,33 +188,33 @@ class GameApp(object):
             pile.redraw()
             self._update_foundations()
             self.clear_selection()
-            self.update_status('Great job!!')
+            self.update_status("Great job!!")
 
-
-    def update_status(self, text='', append=False):
+    def update_status(self, text="", append=False):
         if append:
-            text = self._statusbar.get_text()[0] + '\n' + text
+            text = self._statusbar.get_text()[0] + "\n" + text
         self._statusbar.set_text(text)
 
 
 def exit_on_q(key):
-    if key in ('q', 'Q', 'esc'):
+    if key in ("q", "Q", "esc"):
         raise urwid.ExitMainLoop()
 
 
 def main():
     import argparse
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.parse_args()
 
     app = GameApp()
     loop = urwid.MainLoop(
-        urwid.Filler(app.main_layout, valign='top'),
+        urwid.Filler(app.main_layout, valign="top"),
         PALETTE,
         unhandled_input=exit_on_q,
     )
     loop.run()
 
 
-if '__main__' == __name__:
+if "__main__" == __name__:
     main()

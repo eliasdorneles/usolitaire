@@ -4,10 +4,10 @@ import random
 
 
 SUIT_SYMBOLS = {
-    'spades': u'♠',
-    'diamonds': u'♦',
-    'clubs': u'♣',
-    'hearts': u'♥',
+    "spades": "♠",
+    "diamonds": "♦",
+    "clubs": "♣",
+    "hearts": "♥",
 }
 
 
@@ -22,7 +22,9 @@ class Card(object):
         self.face_up = face_up
 
     def __repr__(self):
-        return 'Card(rank={0.rank!r}, suit={0.suit!r}, face_up={0.face_up!r})'.format(self)
+        return "Card(rank={0.rank!r}, suit={0.suit!r}, face_up={0.face_up!r})".format(
+            self
+        )
 
     @property
     def suit_symbol(self):
@@ -30,13 +32,11 @@ class Card(object):
 
 
 class Deck(object):
-    ranks = ['A'] + [str(n) for n in range(2, 11)] + list('JQK')
-    suits = 'spades diamonds clubs hearts'.split()
+    ranks = ["A"] + [str(n) for n in range(2, 11)] + list("JQK")
+    suits = "spades diamonds clubs hearts".split()
 
     def __init__(self):
-        self._cards = [Card(rank, suit)
-                       for suit in self.suits
-                       for rank in self.ranks]
+        self._cards = [Card(rank, suit) for suit in self.suits for rank in self.ranks]
 
     def __len__(self):
         return len(self._cards)
@@ -52,7 +52,7 @@ class Deck(object):
 
 
 def suit_color(suit):
-    return 'red' if suit in ('diamonds', 'hearts') else 'black'
+    return "red" if suit in ("diamonds", "hearts") else "black"
 
 
 def rank_diff(first, second):
@@ -80,6 +80,7 @@ class Game(object):
     >>> game.move_tableau_pile(1, 2) # moving another pile
     >>> game.move_from_waste_to_tableau(0)
     """
+
     def __init__(self):
         deck = Deck()
         deck.shuffle()
@@ -110,11 +111,13 @@ class Game(object):
     def _is_valid_move_to_tableau(self, source_card, target_card):
         """Check if the given card can be moved to the given tableau pile"""
         if target_card is None:
-            return source_card.rank == 'K'
+            return source_card.rank == "K"
         if not source_card.face_up or not target_card.face_up:
             return False
         diff = rank_diff(source_card.rank, target_card.rank)
-        return diff == 1 and suit_color(source_card.suit) != suit_color(target_card.suit)
+        return diff == 1 and suit_color(source_card.suit) != suit_color(
+            target_card.suit
+        )
 
     def move_from_waste_to_tableau(self, target_index):
         """Move card from waste to tableau"""
@@ -134,7 +137,7 @@ class Game(object):
         assert src_index in range(7), "Invalid index: %r" % src_index
         assert target_index in range(7), "Invalid index: %r" % target_index
         if src_index == target_index:
-            raise InvalidMove('Source is same as destination')
+            raise InvalidMove("Source is same as destination")
         source_pile, target_pile = self.tableau[src_index], self.tableau[target_index]
         target_card = target_pile[-1] if target_pile else None
         for index, card in list(enumerate(source_pile))[::-1]:
@@ -149,11 +152,14 @@ class Game(object):
     def _find_foundation_pile(self, card_to_move):
         """Find a foundation pile where the given card can be moved"""
         for pile in self.foundations:
-            if any([
-                    not pile and card_to_move.rank == 'A',
-                    pile and card_to_move.suit == pile[-1].suit and
-                    rank_diff(card_to_move.rank, pile[-1].rank) == -1
-            ]):
+            if any(
+                [
+                    not pile and card_to_move.rank == "A",
+                    pile
+                    and card_to_move.suit == pile[-1].suit
+                    and rank_diff(card_to_move.rank, pile[-1].rank) == -1,
+                ]
+            ):
                 return pile
 
     def move_to_foundation_from_waste(self):
