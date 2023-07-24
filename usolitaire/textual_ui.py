@@ -3,10 +3,35 @@ from textual.app import App, ComposeResult
 from textual.reactive import reactive
 from textual.widgets import Static
 from textual.widgets import Footer
-from textual.containers import Horizontal
 from usolitaire.game import Card
 from usolitaire.game import Game
 from usolitaire import card_render
+
+
+class PileWidget(Static):
+    top_card = reactive(None)
+
+    DEFAULT_CSS = """
+    PileWidget {
+        height: 8;
+        max-width: 12;
+    }
+    """
+
+    def __init__(self, pile: list[Card], **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.pile = pile
+        self.update(card_render.draw_empty_card())
+        self.update_top_card()
+
+    def update_top_card(self):
+        self.top_card = self.pile[-1] if self.pile else None
+
+    def watch_top_card(self, card: Card | None) -> None:
+        if card:
+            self.update(card_render.draw_card(card, add_rich_markup=True))
+        else:
+            self.update(card_render.draw_empty_card())
 
 
 class CardWidget(Static):
@@ -20,29 +45,6 @@ class CardWidget(Static):
             card_render.draw_card(self.card, only_top=self.is_covered, add_rich_markup=True)
         )
 
-
-class StockPileWidget(Static):
-    top_card = reactive(None)
-
-    DEFAULT_CSS = """
-    StockPileWidget {
-        height: 8;
-    }
-    """
-
-    def __init__(self, pile: list[Card], **kwargs) -> None:
-        super().__init__(**kwargs)
-        self.pile = pile
-        self.update_top_card()
-
-    def update_top_card(self):
-        self.top_card = self.pile[0] if self.pile else None
-
-    def watch_top_card(self, card: Card | None) -> None:
-        if card:
-            self.update(card_render.draw_card(card, add_rich_markup=True))
-        else:
-            self.update(card_render.draw_empty_card())
 
 
 class TableauPileWidget(Static):
@@ -70,8 +72,10 @@ class GameApp(App):
         ("q", "quit", "Quit"),
     ]
     CSS = """
-    .top_piles {
-        height: 10;
+    Screen {
+        layout: grid;
+        grid-size: 7;
+        grid-rows: 8 100%;
     }
     """
 
@@ -80,12 +84,15 @@ class GameApp(App):
 
     def compose(self) -> ComposeResult:
         g = Game()
-        with Horizontal(classes="top_piles"):
-            yield StockPileWidget(g.stock)
-            # TODO: add waste, spacer and the 4 foundations
-        with Horizontal():
-            for pile in g.tableau:
-                yield TableauPileWidget(pile)
+        yield PileWidget(g.stock, id="stock")
+        yield PileWidget(g.waste, id="waste")
+        yield Static("")
+        yield PileWidget(g.foundations[0], id="foundation0")
+        yield PileWidget(g.foundations[1], id="foundation1")
+        yield PileWidget(g.foundations[2], id="foundation2")
+        yield PileWidget(g.foundations[3], id="foundation3")
+        for pile in g.tableau:
+            yield TableauPileWidget(pile)
         yield Footer()
 
 
