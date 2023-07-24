@@ -1,5 +1,6 @@
 from textual.app import App, ComposeResult
 
+from textual.reactive import reactive
 from textual.widgets import Static
 from textual.widgets import Footer
 from textual.containers import Horizontal
@@ -24,10 +25,38 @@ class CardWidget(Static):
         )
 
 
-class PileWidget(Static):
+class StockPileWidget(Static):
+    top_card = reactive(None)
+
     DEFAULT_CSS = """
-    PileWidget {
-        border: solid green;
+    StockPileWidget {
+        height: 8;
+    }
+    """
+
+    def __init__(self, pile: list[Card], **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.pile = pile
+        self.update_top_card()
+
+    def update_top_card(self):
+        self.top_card = self.pile[0] if self.pile else None
+
+    def watch_top_card(self, card: Card | None) -> None:
+        if card:
+            self.update(
+                card_render.draw_card(
+                    card,
+                    add_rich_markup=True,
+                )
+            )
+        else:
+            self.update(card_render.draw_empty_card())
+
+
+class TableauPileWidget(Static):
+    DEFAULT_CSS = """
+    TableauPileWidget {
         max-width: 12;
     }
     """
@@ -49,15 +78,23 @@ class GameApp(App):
         ("d", "toggle_dark", "Toggle dark mode"),
         ("q", "quit", "Quit"),
     ]
+    CSS = """
+    .top_piles {
+        height: 10;
+    }
+    """
 
     def action_quit(self):
         self.exit()
 
     def compose(self) -> ComposeResult:
         g = Game()
+        with Horizontal(classes="top_piles"):
+            yield StockPileWidget(g.stock)
+            # TODO: add waste, spacer and the 4 foundations
         with Horizontal():
             for pile in g.tableau:
-                yield PileWidget(pile)
+                yield TableauPileWidget(pile)
         yield Footer()
 
 
