@@ -1,11 +1,23 @@
 from textual.app import App, ComposeResult
 
+from textual.message import Message
 from textual.reactive import reactive
-from textual.widgets import Static
 from textual.widgets import Footer
+from textual.widgets import Static
 from usolitaire.game import Card
 from usolitaire.game import Game
 from usolitaire import card_render
+
+
+class CardClicked(Message):
+    """
+    Message to signal that a card was clicked
+    """
+
+    def __init__(self, widget_id: str | None, card: Card | None):
+        self.widget_id = widget_id
+        self.card = card
+        super().__init__()
 
 
 class PileWidget(Static):
@@ -33,6 +45,9 @@ class PileWidget(Static):
         else:
             self.update(card_render.draw_empty_card())
 
+    def on_click(self):
+        self.post_message(CardClicked(self.id, self.top_card))
+
 
 class CardWidget(Static):
     def __init__(self, card: Card, is_covered=False, **kwargs) -> None:
@@ -44,7 +59,6 @@ class CardWidget(Static):
         yield Static(
             card_render.draw_card(self.card, only_top=self.is_covered, add_rich_markup=True)
         )
-
 
 
 class TableauPileWidget(Static):
@@ -78,22 +92,34 @@ class GameApp(App):
         grid-rows: 8 100%;
     }
     """
+    def __init__(self):
+        super().__init__()
+        self.game = Game()
 
     def action_quit(self):
         self.exit()
 
     def compose(self) -> ComposeResult:
-        g = Game()
-        yield PileWidget(g.stock, id="stock")
-        yield PileWidget(g.waste, id="waste")
+        yield PileWidget(self.game.stock, id="stock")
+        yield PileWidget(self.game.waste, id="waste")
         yield Static("")
-        yield PileWidget(g.foundations[0], id="foundation0")
-        yield PileWidget(g.foundations[1], id="foundation1")
-        yield PileWidget(g.foundations[2], id="foundation2")
-        yield PileWidget(g.foundations[3], id="foundation3")
-        for pile in g.tableau:
-            yield TableauPileWidget(pile)
+
+        for i, foundation_pile in enumerate(self.game.foundations):
+            yield PileWidget(foundation_pile, id=f"foundation{i}")
+
+        for i, tableau_pile in enumerate(self.game.tableau):
+            yield TableauPileWidget(tableau_pile, id=f"tableau{i}")
+
         yield Footer()
+
+    def on_card_clicked(self, event: CardClicked):
+        if event.widget_id == "stock":
+            if event.card is None:
+                self.game.restore_stock()
+            else:
+                self.game.deal_from_stock()
+            self.query_one("#stock").update_top_card()
+            self.query_one("#waste").update_top_card()
 
 
 if __name__ == "__main__":

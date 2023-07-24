@@ -105,7 +105,7 @@ class Game(object):
 
     def restore_stock(self):
         """Restore stock from waste"""
-        self.stock = list(reversed(self.waste))
+        self.stock[:] = list(reversed(self.waste))
         for card in self.stock:
             card.face_up = False
         self.waste[:] = []
