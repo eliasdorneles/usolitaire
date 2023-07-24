@@ -1,4 +1,3 @@
-import re
 from usolitaire.game import Card
 
 
@@ -42,24 +41,29 @@ def draw_faced_up_card_content(card, only_top=False):
     return content
 
 
+def _wrap_lines_with(text, wrap, wrap_right=None):
+    wrap_right = wrap_right if wrap_right is not None else wrap
+    return "\n".join(f"{wrap}{l}{wrap_right}" for l in text.splitlines())
+
+
 def add_card_borders(text, only_top=False):
     columns = COLUMNS
 
     top = "╭" + "─" * (columns - 2) + "╮\n"
     bottom = "╰" + "─" * (columns - 2) + "╯"
 
-    text = re.sub(r"^", "│", text.strip("\n"), flags=re.MULTILINE)
-    text = re.sub(r"$", "│", text, flags=re.MULTILINE) + "\n"
+    text = _wrap_lines_with(text, "│")
 
     if only_top:
         return top + text
 
-    return top + text + bottom
+    return top + text + "\n" + bottom
 
 
 def draw_card(
     card: Card,
     only_top=False,
+    add_rich_markup=False,
 ):
     """
     Draws a faced down card.
@@ -69,6 +73,9 @@ def draw_card(
     """
     if card.face_up:
         text = draw_faced_up_card_content(card, only_top=only_top)
+        if add_rich_markup:
+            color = 'red' if card.color == 'red' else ''
+            text = _wrap_lines_with(text, f"[bold {color}]", f"[/bold {color}]")
     else:
         text = draw_faced_down_card_content(only_top=only_top)
 

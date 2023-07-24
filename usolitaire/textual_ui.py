@@ -1,6 +1,7 @@
 from textual.app import App, ComposeResult
 
 from textual.widgets import Static
+from textual.widgets import Footer
 from textual.containers import Horizontal
 from usolitaire.game import Card
 from usolitaire.game import Game
@@ -14,7 +15,13 @@ class CardWidget(Static):
         self.is_covered = is_covered
 
     def compose(self) -> ComposeResult:
-        yield Static(card_render.draw_card(self.card, only_top=self.is_covered))
+        yield Static(
+            card_render.draw_card(
+                self.card,
+                only_top=self.is_covered,
+                add_rich_markup=True,
+            )
+        )
 
 
 class PileWidget(Static):
@@ -24,6 +31,7 @@ class PileWidget(Static):
         max-width: 12;
     }
     """
+
     def __init__(self, pile: list[Card], **kwargs) -> None:
         super().__init__(**kwargs)
         self.pile = pile
@@ -37,11 +45,21 @@ class PileWidget(Static):
 
 
 class GameApp(App):
+    BINDINGS = [
+        ("d", "toggle_dark", "Toggle dark mode"),
+        ("q", "quit", "Quit"),
+    ]
+
+    def action_quit(self):
+        self.exit()
+
     def compose(self) -> ComposeResult:
         g = Game()
         with Horizontal():
             for pile in g.tableau:
                 yield PileWidget(pile)
+        yield Footer()
+
 
 if __name__ == "__main__":
     app = GameApp()
