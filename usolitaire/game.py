@@ -30,6 +30,10 @@ class Card(object):
     def suit_symbol(self):
         return SUIT_SYMBOLS[self.suit]
 
+    @property
+    def color(self):
+        return "red" if self.suit in ("diamonds", "hearts") else "black"
+
 
 class Deck(object):
     ranks = ["A"] + [str(n) for n in range(2, 11)] + list("JQK")

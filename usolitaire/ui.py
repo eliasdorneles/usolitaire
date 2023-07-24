@@ -3,7 +3,7 @@
 import urwid
 from functools import partial
 import time
-from usolitaire.cards import draw_empty_card
+from usolitaire.card_render import draw_empty_card
 
 PALETTE = [
     ("red", "dark red", ""),
@@ -11,7 +11,7 @@ PALETTE = [
     ("selected", "", "yellow"),
 ]
 
-SIZE_MOD = {"medium": (8, 6)}
+SIZE_MOD = {"medium": (10, 8)}
 
 
 class BaseCardWidget(urwid.WidgetWrap):
@@ -44,7 +44,7 @@ class EmptyCardWidget(BaseCardWidget):
         super(EmptyCardWidget, self).__init__(self.text)
 
     def _draw_card_text(self):
-        return draw_empty_card(self.card_columns, self.card_rows)
+        return draw_empty_card()
 
     def selectable(self):
         return bool(self.onclick)
@@ -109,6 +109,7 @@ class CardWidget(BaseCardWidget):
             self.last_time_clicked = now
 
     def _draw_card_text(self):
+        # TODO: refactor this using the new card rendering code
         columns, rows = self.card_columns, self.card_rows
 
         style = "selected" if self.highlighted else ""
@@ -123,23 +124,20 @@ class CardWidget(BaseCardWidget):
                 filling = ["│", (style, face_down_middle_filling), "│\n"] * (rows - 2)
         else:
             rank, suit = (self.card.rank, self.card.suit_symbol)
-            spaces = (columns - 5) * " "
+            spaces = (columns - 6) * " "
             filling = [
                 "│",
-                (redornot, "{}{}{}".format(rank.ljust(2), spaces, suit)),
+                (redornot, "{}{}{} ".format(rank.ljust(2), spaces, suit)),
                 "│\n",
             ]
             if not self.on_pile or self.top_of_pile:
                 filling += ["│", (style, " " * (columns - 2)), "│\n"] * (rows - 4) + [
                     "│",
-                    (redornot, "{}{}{}".format(suit, spaces, rank.rjust(2))),
+                    (redornot, "{}{} {}".format(suit, spaces, rank.rjust(2))),
                     "│\n",
                 ]
 
-        if self.on_pile and not self.bottom_of_pile:
-            top = "├" + "─" * (columns - 2) + "┤\n"
-        else:
-            top = "╭" + "─" * (columns - 2) + "╮\n"
+        top = "╭" + "─" * (columns - 2) + "╮\n"
 
         text = [top] + filling
         if not self.on_pile or self.top_of_pile:
