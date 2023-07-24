@@ -122,9 +122,7 @@ class GameApp(object):
         card_widget.highlighted = should_highlight
 
         if should_highlight:
-            self.current_selection = Selection(
-                card_widget, getattr(pile, "index", None)
-            )
+            self.current_selection = Selection(card_widget, getattr(pile, "index", None))
         else:
             self.current_selection = Selection(None, None)
 
@@ -135,10 +133,7 @@ class GameApp(object):
         self.select_card(card_widget, None)
 
     def _card_from_tableau_clicked(self, card_widget, pile):
-        if (
-            not self.current_selection.card
-            or self.current_selection.card == card_widget
-        ):
+        if not self.current_selection.card or self.current_selection.card == card_widget:
             self.select_card(card_widget, pile)
             return
 

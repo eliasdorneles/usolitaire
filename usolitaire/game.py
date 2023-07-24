@@ -22,9 +22,7 @@ class Card(object):
         self.face_up = face_up
 
     def __repr__(self):
-        return "Card(rank={0.rank!r}, suit={0.suit!r}, face_up={0.face_up!r})".format(
-            self
-        )
+        return "Card(rank={0.rank!r}, suit={0.suit!r}, face_up={0.face_up!r})".format(self)
 
     @property
     def suit_symbol(self):
@@ -119,9 +117,7 @@ class Game(object):
         if not source_card.face_up or not target_card.face_up:
             return False
         diff = rank_diff(source_card.rank, target_card.rank)
-        return diff == 1 and suit_color(source_card.suit) != suit_color(
-            target_card.suit
-        )
+        return diff == 1 and suit_color(source_card.suit) != suit_color(target_card.suit)
 
     def move_from_waste_to_tableau(self, target_index):
         """Move card from waste to tableau"""

@@ -9,9 +9,7 @@ class GameTest(unittest.TestCase):
     def test_game_init(self):
         self.assertEqual(len(self.game.waste), 0)
         self.assertEqual([len(pile) for pile in self.game.foundations], [0, 0, 0, 0])
-        self.assertEqual(
-            [len(pile) for pile in self.game.tableau], [1, 2, 3, 4, 5, 6, 7]
-        )
+        self.assertEqual([len(pile) for pile in self.game.tableau], [1, 2, 3, 4, 5, 6, 7])
         self.assertEqual(len(self.game.stock), 24)
         self.assertTrue(all(not c.face_up for c in self.game.stock))
         for pile in self.game.tableau:

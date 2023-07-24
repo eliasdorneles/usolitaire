@@ -74,7 +74,7 @@ def draw_card(
     if card.face_up:
         text = draw_faced_up_card_content(card, only_top=only_top)
         if add_rich_markup:
-            color = 'red' if card.color == 'red' else ''
+            color = "red" if card.color == "red" else ""
             text = _wrap_lines_with(text, f"[bold {color}]", f"[/bold {color}]")
     else:
         text = draw_faced_down_card_content(only_top=only_top)

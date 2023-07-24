@@ -17,11 +17,7 @@ class CardWidget(Static):
 
     def compose(self) -> ComposeResult:
         yield Static(
-            card_render.draw_card(
-                self.card,
-                only_top=self.is_covered,
-                add_rich_markup=True,
-            )
+            card_render.draw_card(self.card, only_top=self.is_covered, add_rich_markup=True)
         )
 
 
@@ -44,12 +40,7 @@ class StockPileWidget(Static):
 
     def watch_top_card(self, card: Card | None) -> None:
         if card:
-            self.update(
-                card_render.draw_card(
-                    card,
-                    add_rich_markup=True,
-                )
-            )
+            self.update(card_render.draw_card(card, add_rich_markup=True))
         else:
             self.update(card_render.draw_empty_card())
 
