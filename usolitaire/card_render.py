@@ -46,7 +46,7 @@ def add_card_borders(text, only_top=False):
     columns = COLUMNS
 
     top = "╭" + "─" * (columns - 2) + "╮\n"
-    bottom = "╰" + "─" * (columns - 2) + "╯\n"
+    bottom = "╰" + "─" * (columns - 2) + "╯"
 
     text = re.sub(r"^", "│", text.strip("\n"), flags=re.MULTILINE)
     text = re.sub(r"$", "│", text, flags=re.MULTILINE) + "\n"
