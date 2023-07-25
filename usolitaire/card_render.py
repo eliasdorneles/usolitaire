@@ -1,6 +1,5 @@
 from usolitaire.game import Card
 
-
 ROWS, COLUMNS = 8, 10
 
 

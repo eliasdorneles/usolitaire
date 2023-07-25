@@ -3,11 +3,17 @@
 """Console-based Solitaire
 """
 
-from __future__ import print_function, absolute_import, division
 from collections import namedtuple
+
 import urwid
-from .game import Game, InvalidMove
-from .ui import CardWidget, CardPileWidget, SpacerWidget, EmptyCardWidget, PALETTE
+
+from .game import Game
+from .game import InvalidMove
+from .ui import PALETTE
+from .ui import CardPileWidget
+from .ui import CardWidget
+from .ui import EmptyCardWidget
+from .ui import SpacerWidget
 
 Selection = namedtuple("Selection", "card tableau_index")
 

@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import urwid
-from functools import partial
 import time
+from functools import partial
+
+import urwid
+
 from usolitaire.card_render import draw_empty_card
 
 PALETTE = [

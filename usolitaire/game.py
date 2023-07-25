@@ -2,7 +2,6 @@
 
 import random
 
-
 SUIT_SYMBOLS = {
     "spades": "♠",
     "diamonds": "♦",
@@ -119,6 +118,13 @@ class Game(object):
         diff = rank_diff(source_card.rank, target_card.rank)
         return diff == 1 and suit_color(source_card.suit) != suit_color(target_card.suit)
 
+    def can_move_card_to_tableau(self, card, tableau_index):
+        """Check if the given card can be moved to the given tableau pile"""
+        assert tableau_index in range(7)
+        target_pile = self.tableau[tableau_index]
+        target_card = target_pile[-1] if target_pile else None
+        return self._is_valid_move_to_tableau(card, target_card)
+
     def move_from_waste_to_tableau(self, target_index):
         """Move card from waste to tableau"""
         assert target_index in range(7)
@@ -128,6 +134,12 @@ class Game(object):
             target_pile.append(self.waste.pop())
         else:
             raise InvalidMove()
+
+    def can_move_from_waste_to_tableau(self, tableau_index):
+        """Check if card from waste can be moved to tableau"""
+        if self.waste:
+            return self.can_move_card_to_tableau(self.waste[-1], tableau_index)
+        return False
 
     def move_tableau_pile(self, src_index, target_index):
         """
@@ -174,6 +186,15 @@ class Game(object):
             raise InvalidMove()
         foundation_pile.append(self.waste.pop())
 
+    def can_move_to_foundation_from_waste(self) -> bool:
+        """
+        Check if the top card of the waste can be moved to foundation
+        """
+        if not self.waste:
+            return False
+        foundation_pile = self._find_foundation_pile(self.waste[-1])
+        return foundation_pile is not None
+
     def move_to_foundation_from_tableau(self, index):
         """
         Move card from tableau to foundation.
@@ -191,6 +212,20 @@ class Game(object):
         if foundation_pile is None:
             raise InvalidMove()
         foundation_pile.append(pile.pop())
+
+    def can_move_to_foundation_from_tableau(self, index) -> bool:
+        """
+        Check if the top card of the given tableau pile can be moved to foundation
+        """
+        assert index in range(7), "Invalid index: %r" % index
+        pile = self.tableau[index]
+        if not pile:
+            return False
+        card_to_move = pile[-1]
+        if not card_to_move.face_up:
+            return False
+        foundation_pile = self._find_foundation_pile(card_to_move)
+        return foundation_pile is not None
 
     def is_won(self):
         """Check if the game is won"""
