@@ -168,12 +168,6 @@ class TableauCardWidget(Static):
             card_render.draw_card(self.card, only_top=self.is_covered, add_rich_markup=True)
         )
 
-    def key_space(self):
-        self.on_click()
-
-    def key_enter(self):
-        self._post_click_message(ClickType.DOUBLE)
-
     def _post_click_message(self, click_type: ClickType) -> None:
         self.post_message(CardClicked(self.id, self.card, click_type))
 
@@ -185,7 +179,7 @@ class TableauCardWidget(Static):
 
     def on_key(self, event: events.Key) -> None:
         if event.key == "space":
-            self._post_click_message(ClickType.SINGLE)
+            self.on_click()
         if event.key == "enter":
             self._post_click_message(ClickType.DOUBLE)
         elif event.key == "left" or event.key == "h":
@@ -199,6 +193,7 @@ class TableauCardWidget(Static):
 
 
 class TableauPileWidget(Static):
+    can_focus = True
     DEFAULT_CSS = """
     TableauPileWidget {
         max-width: 12;
@@ -215,6 +210,9 @@ class TableauPileWidget(Static):
         self.index = index
 
     def compose(self) -> ComposeResult:
+        if not self.pile:
+            yield Static(card_render.draw_empty_card())
+            return
         for i, card in enumerate(self.pile):
             if i == len(self.pile) - 1:
                 yield TableauCardWidget(card, is_covered=False)
@@ -259,3 +257,13 @@ class TableauPileWidget(Static):
 
         self.children[card_index - 1].focus()
         event.stop()
+
+    def on_key(self, event: events.Key) -> None:
+        if event.key == "left" or event.key == "h":
+            self.post_message(MoveFocus(self.id, MoveDirection.LEFT))
+        elif event.key == "right" or event.key == "l":
+            self.post_message(MoveFocus(self.id, MoveDirection.RIGHT))
+        elif event.key == "up" or event.key == "k":
+            self.post_message(MoveFocus(self.id, MoveDirection.UP))
+        elif event.key == "down" or event.key == "j":
+            self.post_message(MoveFocus(self.id, MoveDirection.DOWN))

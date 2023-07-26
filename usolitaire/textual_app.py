@@ -163,11 +163,11 @@ class GameApp(App):
         if self.selected_card is None:
             return
         if self.selected_card.pile_id == "waste":
-            pile = self.query_one("#waste")
-            pile.add_class("selected")
+            pile_widget = self.query_one("#waste")
+            pile_widget.add_class("selected")
         else:
-            pile = self.query_one("#" + self.selected_card.pile_id)
-            for child in pile.children[self.selected_card.card_index :]:
+            pile_widget = self.query_one("#" + self.selected_card.pile_id)
+            for child in pile_widget.children[self.selected_card.card_index :]:
                 child.add_class("selected")
 
     # TODO: add a keypress handler that moves between the tableau piles
@@ -185,6 +185,8 @@ class GameApp(App):
                 self.query_one("#waste").refresh_contents()
                 self.refresh_foundations()
             else:
+                if not self.game.waste:
+                    return
                 new_selected_card = SelectedCardPosition(
                     self.game.waste[-1], "waste", len(self.game.waste) - 1
                 )
@@ -204,6 +206,8 @@ class GameApp(App):
                 self.game.move_to_foundation_from_tableau(event.pile_index)
                 self.refresh_tableau(event.pile_index)
                 self.refresh_foundations()
+                self.selected_card = None
+                self.highlight_selected_cards()
             else:
                 pass  # TODO: just select
         else:
