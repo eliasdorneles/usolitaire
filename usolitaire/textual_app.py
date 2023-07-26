@@ -12,11 +12,11 @@ from usolitaire.game import Card
 from usolitaire.game import Game
 from usolitaire.textual_ui import CardClicked
 from usolitaire.textual_ui import ClickType
+from usolitaire.textual_ui import EmptyTableauClicked
 from usolitaire.textual_ui import MoveDirection
 from usolitaire.textual_ui import MoveFocus
 from usolitaire.textual_ui import PileWidget
 from usolitaire.textual_ui import TableauCardClicked
-from usolitaire.textual_ui import EmptyTableauClicked
 from usolitaire.textual_ui import TableauPileWidget
 
 
@@ -96,7 +96,6 @@ class GameApp(App):
         self.exit()
 
     def action_switch_row_focus(self):
-        print("SWITCH_FOCUS")
         if self.current_focus.row == FocusRow.TOP:
             self.current_focus = self.last_focus[FocusRow.BOTTOM]
         else:
@@ -104,7 +103,9 @@ class GameApp(App):
         self._update_focus()
 
     def on_move_focus(self, event: MoveFocus):
-        print(f"MOVE_FOCUS: sender={event.sender_id} direction={event.direction}")
+        print(
+            f"MOVE_FOCUS: sender={event.sender_id} direction={event.direction} card={event.card}"
+        )
         if not event.sender_id:
             return  # leave this case to be handled by the tableau pile widget
 
@@ -121,7 +122,16 @@ class GameApp(App):
         elif event.sender_id and event.sender_id.startswith("tableau"):
             tableau_index = int(event.sender_id[7:])
             if event.direction == MoveDirection.UP:
-                self.current_focus = FocusPosition(FocusRow.TOP, min(1, tableau_index))
+                card_index = self.current_focus.card_index
+                if card_index and self.game.tableau[tableau_index][card_index - 1].face_up:
+                    self.current_focus.card_index -= 1
+                else:
+                    self.current_focus = FocusPosition(FocusRow.TOP, min(1, tableau_index))
+            elif event.direction == MoveDirection.DOWN:
+                if self.current_focus.card_index is None:
+                    self.current_focus = FocusPosition(FocusRow.BOTTOM, tableau_index)
+                elif self.current_focus.card_index < len(self.game.tableau[tableau_index]) - 1:
+                    self.current_focus.card_index += 1
             elif event.direction == MoveDirection.LEFT:
                 if tableau_index == 0:
                     return
@@ -138,8 +148,13 @@ class GameApp(App):
         focused_pile = self.query_one("#" + self.current_focus.get_pile_id())
         focused_pile.focus()
 
-        if self.current_focus.row == FocusRow.BOTTOM:
-            if self.game.tableau[self.current_focus.pile_index]:
+        if (
+            self.current_focus.row == FocusRow.BOTTOM
+            and self.game.tableau[self.current_focus.pile_index]
+        ):
+            if self.current_focus.card_index is None or self.current_focus.card_index >= len(
+                self.game.tableau[self.current_focus.pile_index]
+            ):
                 self.current_focus.card_index = (
                     len(self.game.tableau[self.current_focus.pile_index]) - 1
                 )
@@ -171,9 +186,6 @@ class GameApp(App):
             for child in pile_widget.children[self.selected_card.card_index :]:
                 child.add_class("selected")
 
-    # TODO: add a keypress handler that moves between the tableau piles
-    # TODO: add a keypress handler that select to move from waste or tableau
-    # TODO: check if moves are valid before making them
     def on_card_clicked(self, event: CardClicked):
         if event.sender_id == "stock":
             self.action_deal_from_stock()
@@ -201,7 +213,6 @@ class GameApp(App):
         self.query_one(f"#tableau{tableau_index}").refresh_contents()
 
     def on_tableau_card_clicked(self, event: TableauCardClicked):
-        print("EVENT HERE:", event.sender_id, event.pile_index, event.card_index)
         if event.click_type == ClickType.DOUBLE:
             if self.game.can_move_to_foundation_from_tableau(event.pile_index):
                 self.game.move_to_foundation_from_tableau(event.pile_index)
@@ -209,12 +220,13 @@ class GameApp(App):
                 self.refresh_foundations()
                 self.selected_card = None
                 self.highlight_selected_cards()
-            else:
-                pass  # TODO: just select
+                self._update_focus()
         else:
             if not event.card.face_up:
                 event.card.face_up = True
+                self.current_focus = FocusPosition(FocusRow.BOTTOM, event.pile_index)
                 self.refresh_tableau(event.pile_index)
+                self._update_focus()
                 return
 
             target_card = SelectedCardPosition(
@@ -232,19 +244,19 @@ class GameApp(App):
             self.highlight_selected_cards()
 
     def _try_moving_selected_card_to_tableau(self, tableau_index: int):
-            src_pile_id = self.selected_card.pile_id
-            if src_pile_id == "waste":
-                if self.game.can_move_from_waste_to_tableau(tableau_index):
-                    self.game.move_from_waste_to_tableau(tableau_index)
-                    self.query_one("#waste").refresh_contents()
-            else:
-                src_pile_index = int(self.selected_card.pile_id[7:])
-                if self.game.can_move_card_to_tableau(self.selected_card.card, tableau_index):
-                    self.game.move_tableau_pile(src_pile_index, tableau_index)
-                    self.refresh_tableau(src_pile_index)
-            self.refresh_tableau(tableau_index)
-            self.selected_card = None
-            self.highlight_selected_cards()
+        src_pile_id = self.selected_card.pile_id
+        if src_pile_id == "waste":
+            if self.game.can_move_from_waste_to_tableau(tableau_index):
+                self.game.move_from_waste_to_tableau(tableau_index)
+                self.query_one("#waste").refresh_contents()
+        else:
+            src_pile_index = int(self.selected_card.pile_id[7:])
+            if self.game.can_move_card_to_tableau(self.selected_card.card, tableau_index):
+                self.game.move_tableau_pile(src_pile_index, tableau_index)
+                self.refresh_tableau(src_pile_index)
+        self.refresh_tableau(tableau_index)
+        self.selected_card = None
+        self.highlight_selected_cards()
 
     def on_empty_tableau_clicked(self, event: EmptyTableauClicked):
         if self.selected_card is None:

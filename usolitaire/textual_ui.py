@@ -65,7 +65,6 @@ class TableauCardClicked(Message):
         super().__init__()
 
 
-
 class EmptyTableauClicked(Message):
     def __init__(self, sender_id: str | None, pile_index: int):
         self.sender_id = sender_id
@@ -197,6 +196,9 @@ class TableauCardWidget(Static):
             self.post_message(MoveFocus(self.id, MoveDirection.UP, self.card))
         elif event.key == "down" or event.key == "j":
             self.post_message(MoveFocus(self.id, MoveDirection.DOWN, self.card))
+        else:
+            return
+        event.stop()
 
 
 class TableauPileWidget(Static):
@@ -245,25 +247,11 @@ class TableauPileWidget(Static):
         )
 
     def on_move_focus(self, event: MoveFocus):
-        print("Tableau move focus handling", event)
-        if event.card is None:
-            # let it bubble up
-            event.sender_id = self.id
-            return
+        event.sender_id = self.id
 
-        if event.direction in (MoveDirection.LEFT, MoveDirection.RIGHT):
-            # let it bubble up
-            event.sender_id = self.id
-            return
-
-        card_index = self.pile.index(event.card)
-        if card_index <= 0 or not self.pile[card_index - 1].face_up:
-            # let it bubble up
-            event.sender_id = self.id
-            return
-
-        self.children[card_index - 1].focus()
-        event.stop()
+    def on_click(self):
+        if not self.pile:
+            self.post_message(EmptyTableauClicked(self.id, self.index))
 
     def on_key(self, event: events.Key) -> None:
         if event.key in ("space", "enter"):
@@ -277,3 +265,6 @@ class TableauPileWidget(Static):
             self.post_message(MoveFocus(self.id, MoveDirection.UP))
         elif event.key == "down" or event.key == "j":
             self.post_message(MoveFocus(self.id, MoveDirection.DOWN))
+        else:
+            return
+        event.stop()
