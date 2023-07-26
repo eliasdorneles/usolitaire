@@ -52,7 +52,7 @@ class TableauCardClicked(Message):
     def __init__(
         self,
         sender_id: str | None,
-        card: Card,
+        card: Card | None,
         click_type: ClickType,
         pile_index: int,
         card_index: int,
@@ -62,6 +62,14 @@ class TableauCardClicked(Message):
         self.click_type = click_type
         self.pile_index = pile_index
         self.card_index = card_index
+        super().__init__()
+
+
+
+class EmptyTableauClicked(Message):
+    def __init__(self, sender_id: str | None, pile_index: int):
+        self.sender_id = sender_id
+        self.pile_index = pile_index
         super().__init__()
 
 
@@ -145,7 +153,6 @@ class PileWidget(Static):
 
 
 class TableauCardWidget(Static):
-    # TODO: how to highlight the focused card?
     DEFAULT_CSS = """
     TableauCardWidget:focus-within {
         background: $boost;
@@ -259,7 +266,10 @@ class TableauPileWidget(Static):
         event.stop()
 
     def on_key(self, event: events.Key) -> None:
-        if event.key == "left" or event.key == "h":
+        if event.key in ("space", "enter"):
+            if not self.pile:
+                self.post_message(EmptyTableauClicked(self.id, self.index))
+        elif event.key == "left" or event.key == "h":
             self.post_message(MoveFocus(self.id, MoveDirection.LEFT))
         elif event.key == "right" or event.key == "l":
             self.post_message(MoveFocus(self.id, MoveDirection.RIGHT))

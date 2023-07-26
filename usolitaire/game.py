@@ -95,6 +95,18 @@ class Game(object):
         self.stock = list(cards)
         self.foundations = [[], [], [], []]
 
+        # XXX: For debugging purposes, let's ensure an ace in the first tableau pile
+        if self.tableau[0][0].rank != "A":
+            for c in self.stock:
+                if c.rank == "A":
+                    c.face_up = True
+                    c_replace = self.tableau[0].pop()
+                    c_replace.face_up = False
+                    self.stock.remove(c)
+                    self.stock.append(c_replace)
+                    self.tableau[0].append(c)
+                    break
+
     def deal_from_stock(self):
         """Deal one card from stock to waste"""
         if not self.stock:

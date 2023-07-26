@@ -16,6 +16,7 @@ from usolitaire.textual_ui import MoveDirection
 from usolitaire.textual_ui import MoveFocus
 from usolitaire.textual_ui import PileWidget
 from usolitaire.textual_ui import TableauCardClicked
+from usolitaire.textual_ui import EmptyTableauClicked
 from usolitaire.textual_ui import TableauPileWidget
 
 
@@ -214,10 +215,41 @@ class GameApp(App):
             if not event.card.face_up:
                 event.card.face_up = True
                 self.refresh_tableau(event.pile_index)
-            pass
-            # TODO: implement move from tableau to tableau
-            # TODO: implement moving from waste to tableau
-            # TODO: implement movent from waste or tableau to foundation
+                return
+
+            target_card = SelectedCardPosition(
+                event.card, f"tableau{event.pile_index}", event.card_index
+            )
+            if target_card == self.selected_card:
+                self.selected_card = None
+            else:
+                if self.selected_card:
+                    target_pile_index = int(target_card.pile_id[7:])
+                    self._try_moving_selected_card_to_tableau(target_pile_index)
+                    self.selected_card = None
+                else:
+                    self.selected_card = target_card
+            self.highlight_selected_cards()
+
+    def _try_moving_selected_card_to_tableau(self, tableau_index: int):
+            src_pile_id = self.selected_card.pile_id
+            if src_pile_id == "waste":
+                if self.game.can_move_from_waste_to_tableau(tableau_index):
+                    self.game.move_from_waste_to_tableau(tableau_index)
+                    self.query_one("#waste").refresh_contents()
+            else:
+                src_pile_index = int(self.selected_card.pile_id[7:])
+                if self.game.can_move_card_to_tableau(self.selected_card.card, tableau_index):
+                    self.game.move_tableau_pile(src_pile_index, tableau_index)
+                    self.refresh_tableau(src_pile_index)
+            self.refresh_tableau(tableau_index)
+            self.selected_card = None
+            self.highlight_selected_cards()
+
+    def on_empty_tableau_clicked(self, event: EmptyTableauClicked):
+        if self.selected_card is None:
+            return
+        self._try_moving_selected_card_to_tableau(event.pile_index)
 
 
 if __name__ == "__main__":
