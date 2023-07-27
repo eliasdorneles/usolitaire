@@ -95,17 +95,27 @@ class Game(object):
         self.stock = list(cards)
         self.foundations = [[], [], [], []]
 
-        # XXX: For debugging purposes, let's ensure an ace in the first tableau pile
-        if self.tableau[0][0].rank != "A":
-            for c in self.stock:
-                if c.rank == "A":
-                    c.face_up = True
-                    c_replace = self.tableau[0].pop()
-                    c_replace.face_up = False
-                    self.stock.remove(c)
-                    self.stock.append(c_replace)
-                    self.tableau[0].append(c)
-                    break
+    def _reset_game_to_almost_won_state(self):
+        """
+        Reset the game to a state where only one move is needed to win.
+        Never used in actual game, it exists just to facilicate testing winning.
+        """
+        deck = Deck()
+        cards = list(deck)
+        for c in cards:
+            c.face_up = True
+        self.waste = []
+        self.tableau = []
+        for n in range(1, 8):
+            self.tableau.append([])
+        self.foundations = [
+            cards[0:13],
+            cards[13 : 13 * 2],
+            cards[13 * 2 : 13 * 3],
+            cards[13 * 3 : 13 * 4 - 1],
+        ]
+        self.stock = []
+        self.waste = [cards[-1]]
 
     def deal_from_stock(self):
         """Deal one card from stock to waste"""
