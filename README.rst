@@ -14,7 +14,7 @@ usolitaire
 
 Play solitaire in your terminal.
 
-Point and click to move cards.
+Point and click to move cards, or use the keyboard shortcuts.
 
 Install with:
 
@@ -30,5 +30,19 @@ To run from sources, you can run with:
 
 .. image:: https://raw.githubusercontent.com/eliasdorneles/usolitaire/master/screenshot-usolitaire.png
 
-
 * Free software: MIT license
+
+
+HISTORY
+=======
+
+I built the first version of this app in 2017 using the `urwid`_ library, while
+I was attending `Recurse Center`_.
+
+In 2023, after attending Europython and learning the `Textual`_ framework,
+which solved all the gripes I had with ``urwid`` before, I decided to rewrite
+it in Textual and added the features that were missing.
+
+.. _urwid: https://urwid.org
+.. _Recurse Center: https://www.recurse.com/
+.. _Textual: https://textual.textualize.io
