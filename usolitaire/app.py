@@ -93,9 +93,8 @@ class USolitaire(App):
     BINDINGS = [
         Binding("tab", "switch_row_focus", "Switch focus", priority=True, show=False),
         Binding("shift-tab", "switch_row_focus", "Switch focus", priority=True, show=False),
-        Binding("ctrl+d", "deal_from_stock", "Deal from stock", show=False),
-        Binding("?", "toggle_help", "Toggle help", show=True),
-        Binding("d", "toggle_dark", "Toggle 🌙", show=True),
+        Binding("ctrl+d", "deal_from_stock", "Deal from stock", show=True),
+        Binding("d", "toggle_dark", "Toggle 🌙 mode", show=True),
         ("q", "quit", "Quit"),
     ]
     CSS_PATH = os.path.join(os.path.dirname(__file__), "textual_app.css")
@@ -137,9 +136,6 @@ class USolitaire(App):
 
         yield MyFooter()
         yield Footer()
-
-    def action_toggle_help(self):
-        self.query_one("#help-text").toggle_class("hidden")
 
     def action_quit(self):
         self.exit()
