@@ -1,12 +1,15 @@
+import os
 from dataclasses import dataclass
 from enum import Enum
 
 from textual.app import App
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.widget import Widget
+from textual.containers import Container
 from textual.widgets import Footer
+from textual.widgets import Header
 from textual.widgets import Static
+from textual.widgets import Markdown
 
 from usolitaire.game import Card
 from usolitaire.game import Game
@@ -45,20 +48,49 @@ class SelectedCardPosition:
     card_index: int
 
 
-class GameApp(App):
+END_OF_GAME_MESSAGE = """
+# Congratulations! You won! 🎉
+
+### You're a winner! 🏆
+
+Here is a cat for you:
+
+```
+ /\     /\\
+{  `---'  }
+{  O   O  }
+~~>  V  <~~
+ \  \|/  /
+  `-----'____
+  /     \    \_
+ {       }\  )_\_   _
+ |  \_/  |/ /  \_\_/ )
+  \__/  /(_/     \__/
+    (__/
+```
+
+Thanks for playing!
+
+[USolitaire](https://github.com/eliasdorneles/usolitaire) is a Klondike
+Solitaire game made with ❤️  by [Elias Dorneles](https://github.com/eliasdorneles).
+
+It's written in Python 🐍 and uses the [Textual](https://textual.textualize.io) framework.
+"""
+
+
+class USolitaire(App):
     BINDINGS = [
         Binding("tab", "switch_row_focus", "Switch focus", priority=True, show=True),
-        ("ctrl+d", "deal_from_stock", "Deal from stock"),
+        ("left", "_l", " "),
+        ("up", "_u", " "),
+        ("down", "_d", " "),
+        ("right", "_r", "Move around"),
+        ("ctrl+d", "deal_from_stock", "Deal"),
+        ("enter", "_e", "Send to foundation"),
         ("q", "quit", "Quit"),
-        Binding("d", "toggle_dark", "Toggle dark mode", show=False),
+        Binding("d", "toggle_dark", "Toggle 🌙", show=True),
     ]
-    CSS = """
-    Screen {
-        layout: grid;
-        grid-size: 7;
-        grid-rows: 10 100%;
-    }
-    """
+    CSS_PATH = os.path.join(os.path.dirname(__file__), "textual_app.css")
 
     def __init__(self):
         super().__init__()
@@ -80,15 +112,20 @@ class GameApp(App):
         self.last_focus[value.row] = value
 
     def compose(self) -> ComposeResult:
-        yield PileWidget(self.game.stock, id="stock")
-        yield PileWidget(self.game.waste, id="waste")
-        yield Static("")
+        yield Header("USolitaire")
 
-        for i, foundation_pile in enumerate(self.game.foundations):
-            yield PileWidget(foundation_pile, id=f"foundation{i}")
+        with Container(id="game-container"):
+            yield PileWidget(self.game.stock, id="stock")
+            yield PileWidget(self.game.waste, id="waste")
+            yield Static(
+                ""
+            )  # needed to occupy the space on the grid between waste and foundations
 
-        for i, tableau_pile in enumerate(self.game.tableau):
-            yield TableauPileWidget(tableau_pile, i, id=f"tableau{i}")
+            for i, foundation_pile in enumerate(self.game.foundations):
+                yield PileWidget(foundation_pile, id=f"foundation{i}")
+
+            for i, tableau_pile in enumerate(self.game.tableau):
+                yield TableauPileWidget(tableau_pile, i, id=f"tableau{i}")
 
         yield Footer()
 
@@ -197,6 +234,7 @@ class GameApp(App):
                 self.game.move_to_foundation_from_waste()
                 self.query_one("#waste").refresh_contents()
                 self.refresh_foundations()
+                self.check_if_won()
             else:
                 if not self.game.waste:
                     return
@@ -212,6 +250,11 @@ class GameApp(App):
     def refresh_tableau(self, tableau_index: int):
         self.query_one(f"#tableau{tableau_index}").refresh_contents()
 
+    def check_if_won(self):
+        if self.game.won():
+            self.query("#game-container").remove()
+            self.mount(Container(Markdown(END_OF_GAME_MESSAGE), id="end-game"))
+
     def on_tableau_card_clicked(self, event: TableauCardClicked):
         if event.click_type == ClickType.DOUBLE:
             if self.game.can_move_to_foundation_from_tableau(event.pile_index):
@@ -221,6 +264,7 @@ class GameApp(App):
                 self.selected_card = None
                 self.highlight_selected_cards()
                 self._update_focus()
+                self.check_if_won()
         else:
             if not event.card.face_up:
                 event.card.face_up = True
@@ -265,5 +309,5 @@ class GameApp(App):
 
 
 if __name__ == "__main__":
-    app = GameApp()
+    app = USolitaire()
     app.run()

@@ -11,7 +11,7 @@ from textual.widgets import Static
 from usolitaire import card_render
 from usolitaire.game import Card
 
-_DOUBLE_CLICK_THRESHOLD_SECONDS = 0.5
+_DOUBLE_CLICK_THRESHOLD_SECONDS = 0.4
 
 
 class ClickType(Enum):
@@ -96,21 +96,6 @@ class PileWidget(Static):
 
     can_focus = True
 
-    DEFAULT_CSS = """
-    PileWidget {
-        height: 10;
-        border: transparent;
-        max-width: 12;
-    }
-    PileWidget:focus-within {
-        background: $boost;
-        border: solid orange;
-    }
-    PileWidget.selected {
-        background: grey;
-    }
-    """
-
     def __init__(self, pile: list[Card], **kwargs) -> None:
         super().__init__(**kwargs)
         self.pile = pile
@@ -152,15 +137,6 @@ class PileWidget(Static):
 
 
 class TableauCardWidget(Static):
-    DEFAULT_CSS = """
-    TableauCardWidget:focus-within {
-        background: $boost;
-    }
-    TableauCardWidget.selected {
-        background: grey;
-    }
-    """
-
     can_focus = True
 
     def __init__(self, card: Card, is_covered=False, **kwargs) -> None:
@@ -203,15 +179,6 @@ class TableauCardWidget(Static):
 
 class TableauPileWidget(Static):
     can_focus = True
-    DEFAULT_CSS = """
-    TableauPileWidget {
-        max-width: 12;
-        border: transparent;
-    }
-    TableauPileWidget:focus-within {
-        border: solid orange;
-    }
-    """
 
     def __init__(self, pile: list[Card], index: int, **kwargs) -> None:
         super().__init__(**kwargs)

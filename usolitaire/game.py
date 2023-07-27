@@ -239,6 +239,6 @@ class Game(object):
         foundation_pile = self._find_foundation_pile(card_to_move)
         return foundation_pile is not None
 
-    def is_won(self):
+    def won(self):
         """Check if the game is won"""
         return all(len(pile) == 13 for pile in self.foundations)
