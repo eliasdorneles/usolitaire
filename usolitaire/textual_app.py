@@ -8,7 +8,6 @@ from textual.binding import Binding
 from textual.containers import Container
 from textual.widgets import Footer
 from textual.widgets import Header
-from textual.widgets import Label
 from textual.widgets import Static
 from textual.widgets import Markdown
 
@@ -52,7 +51,7 @@ class SelectedCardPosition:
 END_OF_GAME_MESSAGE = """
 # Congratulations! You won! 🎉
 
-### You're a winner! 🏆
+### You did it! 🏆
 
 Here is a cat for you:
 
@@ -78,20 +77,12 @@ Solitaire game made with ❤️  by [Elias Dorneles](https://github.com/eliasdor
 It's written in Python 🐍 and uses the [Textual](https://textual.textualize.io) framework.
 """
 
-HELP_TEXT = """
 
-## How to play:
-
-Use the arrow keys and TAB to move around, and SPACE to select a card or pile.
-Alternatively, you can also move with Vim-like keys: h,j,k,l
-
-Press ENTER to move the selected card to the foundation.
-Ctrl-D deals a card from the stock.
-
-You can also play with the mouse.
-
-Press ? to show/hide this help.
-"""
+class MyFooter(Static):
+    def __init__(self):
+        super().__init__(
+            "Move with the arrow keys, [bold]SPACE[/bold] clicks and [bold]ENTER[/bold] double-clicks. Or just use the mouse."
+        )
 
 
 class USolitaire(App):
@@ -100,8 +91,8 @@ class USolitaire(App):
         Binding("shift-tab", "switch_row_focus", "Switch focus", priority=True, show=False),
         Binding("ctrl+d", "deal_from_stock", "Deal from stock", show=False),
         Binding("?", "toggle_help", "Toggle help", show=True),
-        ("q", "quit", "Quit"),
         Binding("d", "toggle_dark", "Toggle 🌙", show=True),
+        ("q", "quit", "Quit"),
     ]
     CSS_PATH = os.path.join(os.path.dirname(__file__), "textual_app.css")
 
@@ -125,7 +116,7 @@ class USolitaire(App):
         self.last_focus[value.row] = value
 
     def compose(self) -> ComposeResult:
-        yield Header("USolitaire")
+        yield Header()
 
         with Container(id="game-container"):
             yield PileWidget(self.game.stock, id="stock")
@@ -140,7 +131,7 @@ class USolitaire(App):
             for i, tableau_pile in enumerate(self.game.tableau):
                 yield TableauPileWidget(tableau_pile, i, id=f"tableau{i}")
 
-        yield Markdown(HELP_TEXT, id="help-text")
+        yield MyFooter()
         yield Footer()
 
     def action_toggle_help(self):
@@ -150,6 +141,7 @@ class USolitaire(App):
         self.exit()
 
     def action_switch_row_focus(self):
+        print(self.query_one("Footer").get_component_styles("footer--highlight").rich_style)
         if self.current_focus.row == FocusRow.TOP:
             self.current_focus = self.last_focus[FocusRow.BOTTOM]
         else:

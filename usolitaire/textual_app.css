@@ -43,3 +43,11 @@ PileWidget.selected {
 #help-text.hidden {
     display: none;
 }
+
+MyFooter {
+    color: $primary;
+    background: $secondary;
+    dock: bottom;
+    height: 2;
+}
+
