@@ -8,6 +8,7 @@ from textual.binding import Binding
 from textual.containers import Container
 from textual.widgets import Footer
 from textual.widgets import Header
+from textual.widgets import Label
 from textual.widgets import Static
 from textual.widgets import Markdown
 
@@ -77,16 +78,28 @@ Solitaire game made with ❤️  by [Elias Dorneles](https://github.com/eliasdor
 It's written in Python 🐍 and uses the [Textual](https://textual.textualize.io) framework.
 """
 
+HELP_TEXT = """
+
+## How to play:
+
+Use the arrow keys and TAB to move around, and SPACE to select a card or pile.
+Alternatively, you can also move with Vim-like keys: h,j,k,l
+
+Press ENTER to move the selected card to the foundation.
+Ctrl-D deals a card from the stock.
+
+You can also play with the mouse.
+
+Press ? to show/hide this help.
+"""
+
 
 class USolitaire(App):
     BINDINGS = [
-        Binding("tab", "switch_row_focus", "Switch focus", priority=True, show=True),
-        ("left", "_l", " "),
-        ("up", "_u", " "),
-        ("down", "_d", " "),
-        ("right", "_r", "Move around"),
-        ("ctrl+d", "deal_from_stock", "Deal"),
-        ("enter", "_e", "Send to foundation"),
+        Binding("tab", "switch_row_focus", "Switch focus", priority=True, show=False),
+        Binding("shift-tab", "switch_row_focus", "Switch focus", priority=True, show=False),
+        Binding("ctrl+d", "deal_from_stock", "Deal from stock", show=False),
+        Binding("?", "toggle_help", "Toggle help", show=True),
         ("q", "quit", "Quit"),
         Binding("d", "toggle_dark", "Toggle 🌙", show=True),
     ]
@@ -127,7 +140,11 @@ class USolitaire(App):
             for i, tableau_pile in enumerate(self.game.tableau):
                 yield TableauPileWidget(tableau_pile, i, id=f"tableau{i}")
 
+        yield Markdown(HELP_TEXT, id="help-text")
         yield Footer()
+
+    def action_toggle_help(self):
+        self.query_one("#help-text").toggle_class("hidden")
 
     def action_quit(self):
         self.exit()
@@ -253,6 +270,7 @@ class USolitaire(App):
     def check_if_won(self):
         if self.game.won():
             self.query("#game-container").remove()
+            self.query("#help-text").remove()
             self.mount(Container(Markdown(END_OF_GAME_MESSAGE), id="end-game"))
 
     def on_tableau_card_clicked(self, event: TableauCardClicked):

@@ -39,3 +39,7 @@ PileWidget:focus-within {
 PileWidget.selected {
     background: $secondary-background;
 }
+
+#help-text.hidden {
+    display: none;
+}
