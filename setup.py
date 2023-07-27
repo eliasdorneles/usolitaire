@@ -12,7 +12,7 @@ requirements = [
 
 setup(
     name="usolitaire",
-    version="1.0.0",
+    version="1.0.1",
     description="Solitaire in your terminal",
     long_description=readme,
     author="Elias Dorneles",
