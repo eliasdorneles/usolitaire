@@ -1,0 +1,41 @@
+Screen #game-container {
+    layout: grid;
+    grid-size: 7;
+    grid-rows: 10 100%;
+}
+
+Container#end-game {
+    padding: 2;
+}
+
+TableauPileWidget {
+    max-width: 12;
+    border: transparent;
+}
+
+TableauPileWidget:focus-within {
+    border: solid $primary;
+}
+
+TableauCardWidget:focus-within {
+    background: $primary-background;
+}
+
+TableauCardWidget.selected {
+    background: $secondary-background;
+}
+
+PileWidget {
+    height: 10;
+    border: transparent;
+    max-width: 12;
+}
+
+PileWidget:focus-within {
+    background: $primary-background;
+    border: solid $primary;
+}
+
+PileWidget.selected {
+    background: $secondary-background;
+}

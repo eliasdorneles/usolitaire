@@ -1,24 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import urwid
-from functools import partial
 import time
+from functools import partial
+
+import urwid
+
+from usolitaire.card_render import draw_empty_card
 
 PALETTE = [
-    ('red', 'dark red', ''),
-    ('selectedred', 'dark red', 'yellow'),
-    ('selected', '', 'yellow'),
+    ("red", "dark red", ""),
+    ("selectedred", "dark red", "yellow"),
+    ("selected", "", "yellow"),
 ]
 
-SIZE_MOD = {'medium': (8,6)}
+SIZE_MOD = {"medium": (10, 8)}
 
 
 class BaseCardWidget(urwid.WidgetWrap):
-    def __init__(self, *args, card_size='medium', **kw):
+    def __init__(self, *args, card_size="medium", **kw):
         self.card_columns, self.card_rows = SIZE_MOD[card_size]
         super(BaseCardWidget, self).__init__(*args, **kw)
         self.redraw()
-
 
     def redraw(self):
         self.text.set_text(self._draw_card_text())
@@ -27,36 +29,30 @@ class BaseCardWidget(urwid.WidgetWrap):
         raise NotImplementedError
 
 
-
 class SpacerWidget(BaseCardWidget):
     def __init__(self, **kw):
-
-        self.text = urwid.Text('', wrap='clip')
+        self.text = urwid.Text("", wrap="clip")
         super(SpacerWidget, self).__init__(self.text)
 
     def _draw_card_text(self):
-        return [u' '* self.card_columns +'\n'] * self.card_rows
+        return [" " * self.card_columns + "\n"] * self.card_rows
 
 
 class EmptyCardWidget(BaseCardWidget):
     def __init__(self, onclick=None, **kw):
         self.onclick = onclick
-        self.text = urwid.Text('', wrap='clip')
+        self.text = urwid.Text("", wrap="clip")
 
         super(EmptyCardWidget, self).__init__(self.text)
 
     def _draw_card_text(self):
-        return [
-                u'╭' + '─' * (self.card_columns-2) + '╮\n' 
-                + (self.card_rows-2) * (u'│'+ ' ' * (self.card_columns-2) + '│\n')
-                + u'╰' + '─' * (self.card_columns-2) + '╯\n'
-            ]
+        return draw_empty_card()
 
     def selectable(self):
         return bool(self.onclick)
 
     def mouse_event(self, size, event, button, col, row, focus):
-        if event == 'mouse press':
+        if event == "mouse press":
             if self.onclick:
                 self.onclick(self)
 
@@ -67,14 +63,22 @@ class EmptyCardWidget(BaseCardWidget):
 class CardWidget(BaseCardWidget):
     highlighted = False
 
-    def __init__(self, card, playable=False, on_pile=False,
-                 bottom_of_pile=False, top_of_pile=False, onclick=None, on_double_click=None):
+    def __init__(
+        self,
+        card,
+        playable=False,
+        on_pile=False,
+        bottom_of_pile=False,
+        top_of_pile=False,
+        onclick=None,
+        on_double_click=None,
+    ):
         self._card = card
         self.playable = playable
         self.on_pile = on_pile
         self.bottom_of_pile = bottom_of_pile
         self.top_of_pile = top_of_pile
-        self.text = urwid.Text('', wrap='clip')
+        self.text = urwid.Text("", wrap="clip")
         self.highlighted = False
         self.onclick = onclick
         self.on_double_click = on_double_click
@@ -82,8 +86,11 @@ class CardWidget(BaseCardWidget):
         super(CardWidget, self).__init__(self.text)
 
     def __repr__(self):
-        return '{}(card={!r}, playable={!r}, highlighted={!r}, ...)'.format(
-            self.__class__.__name__, self.card, self.playable, self.highlighted,
+        return "{}(card={!r}, playable={!r}, highlighted={!r}, ...)".format(
+            self.__class__.__name__,
+            self.card,
+            self.playable,
+            self.highlighted,
         )
 
     def selectable(self):
@@ -93,9 +100,9 @@ class CardWidget(BaseCardWidget):
         return key
 
     def mouse_event(self, size, event, button, col, row, focus):
-        if self.playable and event == 'mouse press':
+        if self.playable and event == "mouse press":
             now = time.time()
-            if (self.last_time_clicked and (now - self.last_time_clicked < 0.5)):
+            if self.last_time_clicked and (now - self.last_time_clicked < 0.5):
                 if self.on_double_click:
                     self.on_double_click(self)
             else:
@@ -104,37 +111,39 @@ class CardWidget(BaseCardWidget):
             self.last_time_clicked = now
 
     def _draw_card_text(self):
+        # TODO: refactor this using the new card rendering code
         columns, rows = self.card_columns, self.card_rows
 
-        style = 'selected' if self.highlighted else ''
-        redornot = 'red' if self.card.suit in ('hearts', 'diamonds') else ''
+        style = "selected" if self.highlighted else ""
+        redornot = "red" if self.card.suit in ("hearts", "diamonds") else ""
         if self.highlighted:
-            redornot = 'selected' + redornot
+            redornot = "selected" + redornot
         if not self.face_up:
-            face_down_middle_filling = (columns-2) * u'╬'
+            face_down_middle_filling = (columns - 2) * "╬"
             if self.on_pile and not self.top_of_pile:
-                filling = [u'│', (style, face_down_middle_filling), u'│\n']
+                filling = ["│", (style, face_down_middle_filling), "│\n"]
             else:
-                filling = [u'│', (style, face_down_middle_filling), u'│\n'] * (rows-2)
+                filling = ["│", (style, face_down_middle_filling), "│\n"] * (rows - 2)
         else:
             rank, suit = (self.card.rank, self.card.suit_symbol)
-            spaces = (columns-5) * ' '
-            filling = [u'│', (redornot, u'{}{}{}'.format(rank.ljust(2), spaces, suit)), u'│\n']
+            spaces = (columns - 6) * " "
+            filling = [
+                "│",
+                (redornot, "{}{}{} ".format(rank.ljust(2), spaces, suit)),
+                "│\n",
+            ]
             if not self.on_pile or self.top_of_pile:
-                filling += (
-                    [u'│', (style, u' ' * (columns-2)), u'│\n'] * (rows-4) +
-                    [u'│', (redornot, u'{}{}{}'.format(suit, spaces,rank.rjust(2))), u'│\n']
-                )
-         
+                filling += ["│", (style, " " * (columns - 2)), "│\n"] * (rows - 4) + [
+                    "│",
+                    (redornot, "{}{} {}".format(suit, spaces, rank.rjust(2))),
+                    "│\n",
+                ]
 
-        if self.on_pile and not self.bottom_of_pile: 
-            top = u'├'+ '─' * (columns-2) +'┤\n'
-        else: 
-            top = u'╭'+ '─' * (columns-2) +'╮\n'
+        top = "╭" + "─" * (columns - 2) + "╮\n"
 
         text = [top] + filling
         if not self.on_pile or self.top_of_pile:
-            text += [u'╰' + '─' * (columns-2) + '╯\n']
+            text += ["╰" + "─" * (columns - 2) + "╯\n"]
 
         if isinstance(text[-1], tuple):
             text[-1] = text[-1][0], text[-1][1].strip()
@@ -162,7 +171,6 @@ class CardWidget(BaseCardWidget):
         self.redraw()
 
 
-
 class CardPileWidget(urwid.WidgetWrap):
     def __init__(self, cards, onclick=None, index=0, on_double_click=None):
         self.cards = cards
@@ -177,20 +185,26 @@ class CardPileWidget(urwid.WidgetWrap):
         if self.cards:
             bottom_cards, card_on_top = self.cards[:-1], self.cards[-1]
             card_widgets = [
-                CardWidget(c,
-                           onclick=self.callback(self.onclick),
-                           on_double_click=self.callback(self.on_double_click),
-                           playable=c.face_up,
-                           on_pile=True,
-                           bottom_of_pile=(i == 0))
-                for i, c in enumerate(bottom_cards)]
+                CardWidget(
+                    c,
+                    onclick=self.callback(self.onclick),
+                    on_double_click=self.callback(self.on_double_click),
+                    playable=c.face_up,
+                    on_pile=True,
+                    bottom_of_pile=(i == 0),
+                )
+                for i, c in enumerate(bottom_cards)
+            ]
             card_widgets.append(
-                CardWidget(card_on_top,
-                           playable=True,
-                           onclick=self.callback(self.onclick),
-                           on_double_click=self.callback(self.on_double_click),
-                           on_pile=len(self.cards) > 1,
-                           top_of_pile=True))
+                CardWidget(
+                    card_on_top,
+                    playable=True,
+                    onclick=self.callback(self.onclick),
+                    on_double_click=self.callback(self.on_double_click),
+                    on_pile=len(self.cards) > 1,
+                    top_of_pile=True,
+                )
+            )
         else:
             card_widgets = [EmptyCardWidget(onclick=self.callback(self.onclick))]
         self.pile.contents[:] = []
