@@ -277,6 +277,8 @@ class USolitaire(App):
                 self.check_if_won()
         else:
             if not event.card.face_up:
+                if not self.game.tableau[event.pile_index][-1] == event.card:
+                    return
                 event.card.face_up = True
                 self.current_focus = FocusPosition(FocusRow.BOTTOM, event.pile_index)
                 self.refresh_tableau(event.pile_index)
