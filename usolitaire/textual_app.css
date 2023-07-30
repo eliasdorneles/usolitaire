@@ -51,3 +51,28 @@ MyFooter {
     height: 2;
 }
 
+ConfirmNewGameScreen {
+    align: center middle;
+}
+
+#dialog {
+    grid-size: 2;
+    grid-gutter: 1 2;
+    grid-rows: 1fr 3;
+    padding: 0 1;
+    width: 50;
+    height: 11;
+    border: thick $background 80%;
+    background: $surface;
+}
+
+ConfirmNewGameScreen Label {
+    column-span: 2;
+    height: 1fr;
+    width: 1fr;
+    content-align: center middle;
+}
+
+Button {
+    width: 100%;
+}

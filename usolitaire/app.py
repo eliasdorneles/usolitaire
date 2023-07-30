@@ -10,10 +10,16 @@ from textual.app import App
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Container
+from textual.containers import Grid
+from textual.css.query import NoMatches
+from textual.screen import ModalScreen
+from textual.screen import Screen
+from textual.widgets import Button
 from textual.widgets import Footer
 from textual.widgets import Header
-from textual.widgets import Static
+from textual.widgets import Label
 from textual.widgets import Markdown
+from textual.widgets import Static
 
 from usolitaire.game import Card
 from usolitaire.game import Game
@@ -82,6 +88,13 @@ It's written in Python 🐍 and uses the [Textual](https://textual.textualize.io
 """
 
 
+class EndOfGameScreen(Screen):
+    def compose(self) -> ComposeResult:
+        yield Header()
+        yield Container(Markdown(END_OF_GAME_MESSAGE))
+        yield Footer()
+
+
 class MyFooter(Static):
     def __init__(self):
         super().__init__(
@@ -89,11 +102,33 @@ class MyFooter(Static):
         )
 
 
+class ConfirmNewGameScreen(ModalScreen):
+    BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
+
+    def compose(self) -> ComposeResult:
+        yield Grid(
+            Label("❔    Do you want to start a new game?"),
+            Button("Yes, start new game", variant="primary", id="confirm_new_game_btn"),
+            Button("No, go back", variant="default", id="cancel"),
+            id="dialog",
+        )
+
+    def on_key(self, event):
+        if event.key in ("left", "down"):
+            self.focus_next()
+        elif event.key in ("right", "up"):
+            self.focus_previous()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        self.dismiss(event.button.id == "confirm_new_game_btn")
+
+
 class USolitaire(App):
     BINDINGS = [
-        Binding("tab", "switch_row_focus", "Switch focus", priority=True, show=False),
+        Binding("tab", "switch_row_focus", "Switch focus", priority=True, show=True),
         Binding("shift-tab", "switch_row_focus", "Switch focus", priority=True, show=False),
         Binding("ctrl+d", "deal_from_stock", "Deal from stock", show=True),
+        Binding("n", "request_new_game", "New game", show=True),
         Binding("d", "toggle_dark", "Toggle 🌙 mode", show=True),
         ("q", "quit", "Quit"),
     ]
@@ -102,12 +137,14 @@ class USolitaire(App):
     def __init__(self):
         super().__init__()
         self.game = Game()
+
         self.last_focus = {
             FocusRow.TOP: FocusPosition(FocusRow.TOP, 0),
             FocusRow.BOTTOM: FocusPosition(FocusRow.BOTTOM, 0),
         }
         self._current_focus = FocusPosition(FocusRow.TOP, 0)
         self.selected_card: SelectedCardPosition | None = None
+        self.playing: bool = True
 
     @property
     def current_focus(self) -> FocusPosition:
@@ -118,15 +155,34 @@ class USolitaire(App):
         self._current_focus = value
         self.last_focus[value.row] = value
 
+    def action_request_new_game(self):
+        self.playing = False
+
+        def confirm_new_game(confirm):
+            if confirm:
+                self.game = Game()
+                try:
+                    self.query_one("EndOfGameScreen")
+                    self.pop_screen()
+                except NoMatches:
+                    pass
+
+                self._current_focus = FocusPosition(FocusRow.TOP, 0)
+                self.selected_card = None
+                self.refresh_contents()
+                self.playing = True
+
+        self.push_screen(ConfirmNewGameScreen(), callback=confirm_new_game)
+
     def compose(self) -> ComposeResult:
         yield Header()
 
         with Container(id="game-container"):
             yield PileWidget(self.game.stock, id="stock")
             yield PileWidget(self.game.waste, id="waste")
-            yield Static(
-                ""
-            )  # needed to occupy the space on the grid between waste and foundations
+
+            # needed to occupy the space on the grid between waste and foundations:
+            yield Static("")
 
             for i, foundation_pile in enumerate(self.game.foundations):
                 yield PileWidget(foundation_pile, id=f"foundation{i}")
@@ -137,11 +193,40 @@ class USolitaire(App):
         yield MyFooter()
         yield Footer()
 
+    def refresh_contents(self):
+        for i, pile in enumerate(self.game.foundations):
+            pile_widget = self._get_foundation_pile(i)
+            pile_widget.pile = pile
+            pile_widget.refresh_contents()
+
+        for i, pile in enumerate(self.game.tableau):
+            pile_widget = self._get_tableau_pile(i)
+            pile_widget.pile = pile
+            pile_widget.index = i
+            pile_widget.refresh_contents()
+
+        stock_pile_widget = self._get_stock_pile()
+        stock_pile_widget.pile = self.game.stock
+        stock_pile_widget.refresh_contents()
+
+        waste_pile_widget = self._get_waste_pile()
+        waste_pile_widget.pile = self.game.waste
+        waste_pile_widget.refresh_contents()
+        self._update_focus()
+        self.refresh()
+
     def action_quit(self):
         self.exit()
 
     def action_switch_row_focus(self):
-        print(self.query_one("Footer").get_component_styles("footer--highlight").rich_style)
+        try:
+            # if in the modal screen, switch focus inside it
+            self.query_one("ConfirmNewGameScreen #dialog")
+            self.screen.focus_next()
+            return
+        except NoMatches:
+            pass
+
         if self.current_focus.row == FocusRow.TOP:
             self.current_focus = self.last_focus[FocusRow.BOTTOM]
         else:
@@ -209,24 +294,26 @@ class USolitaire(App):
             focused_pile.children[self.current_focus.card_index].focus()
 
     def action_deal_from_stock(self):
+        if not self.playing:
+            return
+
         if self.game.stock:
             self.game.deal_from_stock()
         else:
             self.game.restore_stock()
-        self.query_one("#stock").refresh_contents()
-        self.query_one("#waste").refresh_contents()
+        self._get_stock_pile().refresh_contents()
+        self._get_waste_pile().refresh_contents()
 
     def refresh_foundations(self):
         for i in range(4):
-            self.query_one(f"#foundation{i}").refresh_contents()
+            self._get_foundation_pile(i).refresh_contents()
 
     def highlight_selected_cards(self):
         self.query(".selected").remove_class("selected")
         if self.selected_card is None:
             return
         if self.selected_card.pile_id == "waste":
-            pile_widget = self.query_one("#waste")
-            pile_widget.add_class("selected")
+            self._get_waste_pile().add_class("selected")
         else:
             pile_widget = self.query_one("#" + self.selected_card.pile_id)
             for child in pile_widget.children[self.selected_card.card_index :]:
@@ -241,7 +328,7 @@ class USolitaire(App):
                 and self.game.can_move_to_foundation_from_waste()
             ):
                 self.game.move_to_foundation_from_waste()
-                self.query_one("#waste").refresh_contents()
+                self._get_waste_pile().refresh_contents()
                 self.refresh_foundations()
                 self.check_if_won()
             else:
@@ -256,14 +343,25 @@ class USolitaire(App):
                     self.selected_card = new_selected_card
                 self.highlight_selected_cards()
 
+    def _get_waste_pile(self) -> PileWidget:
+        return self.query_one("#waste", PileWidget)
+
+    def _get_stock_pile(self) -> PileWidget:
+        return self.query_one("#stock", PileWidget)
+
+    def _get_foundation_pile(self, foundation_index: int) -> PileWidget:
+        return self.query_one(f"#foundation{foundation_index}", PileWidget)
+
+    def _get_tableau_pile(self, tableau_index: int) -> TableauPileWidget:
+        return self.query_one(f"#tableau{tableau_index}", TableauPileWidget)
+
     def refresh_tableau(self, tableau_index: int):
-        self.query_one(f"#tableau{tableau_index}").refresh_contents()
+        self._get_tableau_pile(tableau_index).refresh_contents()
 
     def check_if_won(self):
         if self.game.won():
-            self.query("#game-container").remove()
-            self.query("#help-text").remove()
-            self.mount(Container(Markdown(END_OF_GAME_MESSAGE), id="end-game"))
+            self.push_screen(EndOfGameScreen())
+            self.playing = False
 
     def on_tableau_card_clicked(self, event: TableauCardClicked):
         if event.click_type == ClickType.DOUBLE:
@@ -304,7 +402,7 @@ class USolitaire(App):
         if src_pile_id == "waste":
             if self.game.can_move_from_waste_to_tableau(tableau_index):
                 self.game.move_from_waste_to_tableau(tableau_index)
-                self.query_one("#waste").refresh_contents()
+                self._get_waste_pile().refresh_contents()
         else:
             src_pile_index = int(self.selected_card.pile_id[7:])
             if self.game.can_move_card_to_tableau(self.selected_card.card, tableau_index):
