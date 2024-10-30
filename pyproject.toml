@@ -1,3 +1,37 @@
+[tool.poetry]
+name = "usolitaire"
+version = "1.1.0"
+description = "Solitaire in your terminal"
+authors = ["Elias Dorneles <eliasdorneles@gmail.com>"]
+license = "MIT"
+readme = "README.rst"
+homepage = "https://github.com/eliasdorneles/usolitaire"
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+packages = [
+    { include = "usolitaire" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+textual = "*"
+
+[tool.poetry.scripts]
+usolitaire = "usolitaire.app:main"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.black]
-line-length=99
+line-length = 99

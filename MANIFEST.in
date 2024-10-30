@@ -1,4 +1,2 @@
 include README.rst
 include usolitaire/*.css
-recursive-exclude * __pycache__
-recursive-exclude * *.py[co]
