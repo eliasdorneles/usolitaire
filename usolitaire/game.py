@@ -313,17 +313,44 @@ class FreecellGame(Game):
         else:
             raise InvalidMove("Cannot move card to the selected tableau pile")
 
+    def _max_movable_cards(self):
+        """Calculate the maximum number of cards that can be moved at once"""
+        empty_tableaus = sum(1 for pile in self.tableau if not pile)
+        empty_freecells = sum(1 for cell in self.freecells if cell is None)
+        return (empty_freecells + 1) * (2 ** empty_tableaus)
+
     def move_tableau_cards(self, src_index, target_index, num_cards):
         """Move cards between tableau piles"""
         if len(self.tableau[src_index]) < num_cards:
             raise InvalidMove("Not enough cards in the source pile")
         
+        max_movable = self._max_movable_cards()
+        if num_cards > max_movable:
+            raise InvalidMove(f"Can only move up to {max_movable} cards at once")
+        
         cards_to_move = self.tableau[src_index][-num_cards:]
+        
+        # Check if the cards to move form a valid sequence
+        for i in range(num_cards - 1):
+            if not self._is_valid_move_to_tableau(cards_to_move[i+1], cards_to_move[i]):
+                raise InvalidMove("Cards to move do not form a valid sequence")
+        
         if not self.tableau[target_index]:
-            if cards_to_move[0].rank != "K":
-                raise InvalidMove("Only Kings can be moved to an empty tableau pile")
+            # Any card can be moved to an empty tableau in Freecell
+            pass
         elif not self._is_valid_move_to_tableau(cards_to_move[0], self.tableau[target_index][-1]):
             raise InvalidMove("Invalid move")
+        
+        # Check if we have enough free cells and empty columns to make this move
+        empty_freecells = sum(1 for cell in self.freecells if cell is None)
+        empty_tableaus = sum(1 for pile in self.tableau if not pile) - (1 if not self.tableau[target_index] else 0)
+        
+        if num_cards > 1:
+            required_empty_spaces = num_cards - 1
+            available_empty_spaces = empty_freecells + empty_tableaus
+            
+            if required_empty_spaces > available_empty_spaces:
+                raise InvalidMove("Not enough free cells and empty columns for this move")
         
         self.tableau[target_index].extend(cards_to_move)
         self.tableau[src_index] = self.tableau[src_index][:-num_cards]
