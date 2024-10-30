@@ -356,14 +356,22 @@ class FreecellGame(Game):
         self.tableau[src_index] = self.tableau[src_index][:-num_cards]
 
     def move_to_foundation(self, tableau_index):
-        """Move the top card from a tableau pile to a foundation pile"""
+        """
+        Move the top card from a tableau pile to a foundation pile.
+        Check if the move is valid according to the rules of Solitaire.
+        """
         if not self.tableau[tableau_index]:
             raise InvalidMove("No cards in the selected tableau pile")
         
         card = self.tableau[tableau_index][-1]
         foundation_pile = self._find_foundation_pile(card)
         
-        if foundation_pile is not None:
+        if foundation_pile is None:
+            raise InvalidMove("Cannot move card to foundation")
+        
+        if (not foundation_pile and card.rank == 'A') or \
+           (foundation_pile and card.suit == foundation_pile[-1].suit and 
+            rank_diff(foundation_pile[-1].rank, card.rank) == 1):
             foundation_pile.append(self.tableau[tableau_index].pop())
         else:
             raise InvalidMove("Cannot move card to foundation")
