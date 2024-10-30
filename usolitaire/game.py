@@ -252,3 +252,92 @@ class Game(object):
     def won(self):
         """Check if the game is won"""
         return all(len(pile) == 13 for pile in self.foundations)
+
+
+class FreecellGame(Game):
+    """
+    Class implementing the Freecell game logic.
+
+    The game is played with a standard deck of 52 cards.
+
+    The cards are dealt into 8 tableau piles, each containing 6 or 7 cards.
+    All cards are face up.
+    There are 4 free cells and 4 foundation piles, initially empty.
+
+    How to use:
+    >>> game = FreecellGame()
+    >>> game.move_to_freecell(0)
+    >>> game.move_from_freecell_to_tableau(0, 1)
+    >>> game.move_tableau_cards(0, 1, 2)
+    >>> game.move_to_foundation(0)
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.freecells = [None] * 4
+        self.tableau = [[] for _ in range(8)]
+        
+        # Deal cards to tableau
+        deck = Deck()
+        deck.shuffle()
+        cards = list(deck)
+        for i, card in enumerate(cards):
+            card.face_up = True
+            self.tableau[i % 8].append(card)
+        
+        # Clear other attributes from parent class
+        self.stock = []
+        self.waste = []
+
+    def move_to_freecell(self, tableau_index):
+        """Move the top card from a tableau pile to an empty freecell"""
+        if not self.tableau[tableau_index]:
+            raise InvalidMove("No cards in the selected tableau pile")
+        
+        for i, cell in enumerate(self.freecells):
+            if cell is None:
+                self.freecells[i] = self.tableau[tableau_index].pop()
+                return
+        
+        raise InvalidMove("All freecells are occupied")
+
+    def move_from_freecell_to_tableau(self, freecell_index, tableau_index):
+        """Move a card from a freecell to a tableau pile"""
+        if self.freecells[freecell_index] is None:
+            raise InvalidMove("Selected freecell is empty")
+        
+        card = self.freecells[freecell_index]
+        if self.can_move_card_to_tableau(card, tableau_index):
+            self.tableau[tableau_index].append(card)
+            self.freecells[freecell_index] = None
+        else:
+            raise InvalidMove("Cannot move card to the selected tableau pile")
+
+    def move_tableau_cards(self, src_index, target_index, num_cards):
+        """Move cards between tableau piles"""
+        if len(self.tableau[src_index]) < num_cards:
+            raise InvalidMove("Not enough cards in the source pile")
+        
+        cards_to_move = self.tableau[src_index][-num_cards:]
+        if not self.tableau[target_index]:
+            if cards_to_move[0].rank != "K":
+                raise InvalidMove("Only Kings can be moved to an empty tableau pile")
+        elif not self._is_valid_move_to_tableau(cards_to_move[0], self.tableau[target_index][-1]):
+            raise InvalidMove("Invalid move")
+        
+        self.tableau[target_index].extend(cards_to_move)
+        self.tableau[src_index] = self.tableau[src_index][:-num_cards]
+
+    def move_to_foundation(self, tableau_index):
+        """Move the top card from a tableau pile to a foundation pile"""
+        if not self.tableau[tableau_index]:
+            raise InvalidMove("No cards in the selected tableau pile")
+        
+        card = self.tableau[tableau_index][-1]
+        foundation_pile = self._find_foundation_pile(card)
+        
+        if foundation_pile is not None:
+            foundation_pile.append(self.tableau[tableau_index].pop())
+        else:
+            raise InvalidMove("Cannot move card to foundation")
+
