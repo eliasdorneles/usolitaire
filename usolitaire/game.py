@@ -1,66 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import random
-
-SUIT_SYMBOLS = {
-    "spades": "♠",
-    "diamonds": "♦",
-    "clubs": "♣",
-    "hearts": "♥",
-}
-
-
-class InvalidMove(Exception):
-    """Raised to indicate an invalid move"""
-
-
-class Card(object):
-    def __init__(self, rank, suit, face_up=False):
-        self.rank = rank
-        self.suit = suit
-        self.face_up = face_up
-
-    def __repr__(self):
-        return "Card(rank={0.rank!r}, suit={0.suit!r}, face_up={0.face_up!r})".format(self)
-
-    @property
-    def suit_symbol(self):
-        return SUIT_SYMBOLS[self.suit]
-
-    @property
-    def color(self):
-        return "red" if self.suit in ("diamonds", "hearts") else "black"
-
-
-class Deck(object):
-    ranks = ["A"] + [str(n) for n in range(2, 11)] + list("JQK")
-    suits = "spades diamonds clubs hearts".split()
-
-    def __init__(self):
-        self._cards = [Card(rank, suit) for suit in self.suits for rank in self.ranks]
-
-    def __len__(self):
-        return len(self._cards)
-
-    def __getitem__(self, position):
-        return self._cards[position]
-
-    def __iter__(self):
-        return iter(self._cards)
-
-    def shuffle(self):
-        random.shuffle(self._cards)
-
-
-def suit_color(suit):
-    return "red" if suit in ("diamonds", "hearts") else "black"
-
-
-def rank_diff(first, second):
-    """Return the relative difference between the given ranks"""
-    assert first in Deck.ranks and second in Deck.ranks
-    return Deck.ranks.index(second) - Deck.ranks.index(first)
-
+from .deck import Deck, Card
+from .exceptions import InvalidMove
+from .utils import suit_color, rank_diff
 
 class Game(object):
     """
@@ -85,11 +27,11 @@ class Game(object):
     def __init__(self):
         deck = Deck()
         deck.shuffle()
-        cards = list(deck)
-        self.waste = []
-        self.tableau = []
+        cards: list[Card] = list(deck)
+        self.waste: list[Card] = []
+        self.tableau: list[list[Card]] = []
         for n in range(1, 8):
-            self.tableau.append([cards.pop() for _ in range(n)])
+            self.tableau.append([cards.pop() for _ in range(n)])  # type: ignore
         for pile in self.tableau:
             pile[-1].face_up = True
         self.stock = list(cards)
@@ -101,8 +43,8 @@ class Game(object):
         Never used in actual game, it exists just to facilicate testing winning.
         """
         deck = Deck()
-        cards = list(deck)
-        for c in cards:
+        cards: list[Card] = list(deck)
+        for c in cards:  # type: ignore
             c.face_up = True
         self.waste = []
         self.tableau = []
@@ -113,7 +55,7 @@ class Game(object):
             cards[13 : 13 * 2],
             cards[13 * 2 : 13 * 3],
             cards[13 * 3 : 13 * 4 - 1],
-        ]
+        ]  # type: ignore
         self.stock = []
         self.waste = [cards[-1]]
 
