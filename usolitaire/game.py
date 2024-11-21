@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .deck import Deck
+from .deck import Deck, Card
 from .exceptions import InvalidMove
 from .utils import suit_color, rank_diff
 
@@ -27,11 +27,11 @@ class Game(object):
     def __init__(self):
         deck = Deck()
         deck.shuffle()
-        cards = list(deck)
-        self.waste = []
-        self.tableau = []
+        cards: list[Card] = list(deck)
+        self.waste: list[Card] = []
+        self.tableau: list[list[Card]] = []
         for n in range(1, 8):
-            self.tableau.append([cards.pop() for _ in range(n)])
+            self.tableau.append([cards.pop() for _ in range(n)])  # type: ignore
         for pile in self.tableau:
             pile[-1].face_up = True
         self.stock = list(cards)
@@ -43,8 +43,8 @@ class Game(object):
         Never used in actual game, it exists just to facilicate testing winning.
         """
         deck = Deck()
-        cards = list(deck)
-        for c in cards:
+        cards: list[Card] = list(deck)
+        for c in cards:  # type: ignore
             c.face_up = True
         self.waste = []
         self.tableau = []
@@ -55,7 +55,7 @@ class Game(object):
             cards[13 : 13 * 2],
             cards[13 * 2 : 13 * 3],
             cards[13 * 3 : 13 * 4 - 1],
-        ]
+        ]  # type: ignore
         self.stock = []
         self.waste = [cards[-1]]
 

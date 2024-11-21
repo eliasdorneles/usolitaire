@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import random
-from .card import Card
+from .card import Card, Rank, Suit
 
 class Deck(object):
-    ranks = ["A"] + [str(n) for n in range(2, 11)] + list("JQK")
+    ranks: list[Rank] = ["A"] + [str(n) for n in range(2, 11)] + list("JQK")  # type: ignore
     suits = "spades diamonds clubs hearts".split()
 
     def __init__(self):
