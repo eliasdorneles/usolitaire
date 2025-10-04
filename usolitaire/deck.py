@@ -2,7 +2,7 @@
 
 import random
 
-from .card import Card, Rank, Suit
+from .card import Card, Rank
 
 
 class Deck(object):

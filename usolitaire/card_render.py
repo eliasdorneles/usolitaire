@@ -42,7 +42,7 @@ def draw_faced_up_card_content(card, only_top=False):
 
 def _wrap_lines_with(text, wrap, wrap_right=None):
     wrap_right = wrap_right if wrap_right is not None else wrap
-    return "\n".join(f"{wrap}{l}{wrap_right}" for l in text.splitlines())
+    return "\n".join(f"{wrap}{L}{wrap_right}" for L in text.splitlines())
 
 
 def add_card_borders(text, only_top=False):
