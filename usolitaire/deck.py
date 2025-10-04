@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import random
+
 from .card import Card, Rank, Suit
+
 
 class Deck(object):
     ranks: list[Rank] = ["A"] + [str(n) for n in range(2, 11)] + list("JQK")  # type: ignore

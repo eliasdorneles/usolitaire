@@ -1,6 +1,5 @@
 import time
-from enum import Enum
-from enum import auto
+from enum import Enum, auto
 
 from textual import events
 from textual.app import ComposeResult

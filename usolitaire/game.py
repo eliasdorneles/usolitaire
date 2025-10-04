@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from .deck import Deck, Card
+from .deck import Card, Deck
 from .exceptions import InvalidMove
-from .utils import suit_color, rank_diff
+from .utils import rank_diff, suit_color
+
 
 class Game(object):
     """

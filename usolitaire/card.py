@@ -11,6 +11,7 @@ SUIT_SYMBOLS = {
 Rank = Literal["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
 Suit = Literal["spades", "diamonds", "clubs", "hearts"]
 
+
 class Card(object):
     def __init__(self, rank: Rank, suit: Suit, face_up: bool = False):
         self.rank: Rank = rank

@@ -1,36 +1,30 @@
 """
 Console-based Klondike Solitaire game.
 """
+
 import argparse
 import os
 from dataclasses import dataclass
 from enum import Enum
 
-from textual.app import App
-from textual.app import ComposeResult
+from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Container
-from textual.containers import Grid
+from textual.containers import Container, Grid
 from textual.css.query import NoMatches
-from textual.screen import ModalScreen
-from textual.screen import Screen
-from textual.widgets import Button
-from textual.widgets import Footer
-from textual.widgets import Header
-from textual.widgets import Label
-from textual.widgets import Markdown
-from textual.widgets import Static
+from textual.screen import ModalScreen, Screen
+from textual.widgets import Button, Footer, Header, Label, Markdown, Static
 
-from usolitaire.game import Card
-from usolitaire.game import Game
-from usolitaire.textual_ui import CardClicked
-from usolitaire.textual_ui import ClickType
-from usolitaire.textual_ui import EmptyTableauClicked
-from usolitaire.textual_ui import MoveDirection
-from usolitaire.textual_ui import MoveFocus
-from usolitaire.textual_ui import PileWidget
-from usolitaire.textual_ui import TableauCardClicked
-from usolitaire.textual_ui import TableauPileWidget
+from usolitaire.game import Card, Game
+from usolitaire.textual_ui import (
+    CardClicked,
+    ClickType,
+    EmptyTableauClicked,
+    MoveDirection,
+    MoveFocus,
+    PileWidget,
+    TableauCardClicked,
+    TableauPileWidget,
+)
 
 
 class FocusRow(Enum):
@@ -234,9 +228,7 @@ class USolitaire(App):
         self._update_focus()
 
     def on_move_focus(self, event: MoveFocus):
-        print(
-            f"MOVE_FOCUS: sender={event.sender_id} direction={event.direction} card={event.card}"
-        )
+        print(f"MOVE_FOCUS: sender={event.sender_id} direction={event.direction} card={event.card}")
         if not event.sender_id:
             return  # leave this case to be handled by the tableau pile widget
 

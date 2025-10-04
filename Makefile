@@ -1,8 +1,8 @@
 .DEFAULT_GOAL := help
 
 format:  ## Format code
-	isort --sl .
-	black .
+	uvx ruff check --select I --fix
+	uvx ruff format
 
 # Implements this pattern for autodocumenting Makefiles:
 # https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
